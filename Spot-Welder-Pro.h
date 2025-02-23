@@ -1,5 +1,5 @@
-#ifndef _ARDUINO_SPOT_WELDER_V4_H
-#define _ARDUINO_SPOT_WELDER_V4_H
+#ifndef _SPOT_WELDER_PRO_H
+#define _SPOT_WELDER_PRO_H
 
 // General macros
 #define str(s) #s
@@ -313,6 +313,6 @@ static const char LS_MSGHDR[] PROGMEM = "System Message";         // 21 char, le
 
 #endif
 
-#endif  // _ARDUINO_SPOT_WELDER_V4_H
+#endif  // _SPOT_WELDER_PRO_H
 
-// EOF Arduino_Spot_Welder_V4.h
+// EOF Spot_Welder_Pro.h
