@@ -4,7 +4,7 @@
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include "printf.h"
-#include "Spot-Welder-Pro.h"
+#include "Spot-Welder-Pro-main.h"
 #include <INA226.h>
 
 INA226 INA(0x40);
