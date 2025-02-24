@@ -11,40 +11,40 @@ INA226 INA(0x40);
 
 // Стани машини
 enum states {
-  ST_STANDBY,         /**< Стан машини: режим очікування */
-  ST_MAIN_SCREEN,     /**< Стан: відобразити головний екран */
-  ST_MAIN_SCREEN_CNT, /**< Стан: відобразити статистику */
-  ST_MENU_SCREEN,     /**< Стан: відобразити екран меню */
-  ST_SUB_MENU_1,      /**< Стан: відобразити sub-menu1 */
-  ST_SUB_MENU_2,      /**< Стан: відобразити sub-menu2 */
-  ST_BATTERY_LOW,     /**< Стан: low battery voltage */
-  ST_BATTERY_HIGH,    /**< Стан: high battery voltage */
-  ST_TEMP_HIGH,       /**< Стан: high temperature */
-
-  ST_SYSTEM_SCREEN,   /**< Стан: відображення системного екрана */
-  ST_SYSTEM_MENU,     /**< Стан: відображення системного меню */
-  ST_REBOOT_MENU,     /**< Стан: відобразити меню перезавантаження */
-  ST_MAXWELD_SCREEN,  /**< Стан: відобразити екран налаштування максимального зварного шва */
-  ST_INVERT_SCREEN,   /**< Стан: відобразити екран налаштування інвертування */
-  ST_PULSE_VOLTAGE,   /**< Стан: відображення екрана виміряної імпульсної напруги */
+  ST_STANDBY,          // Стан машини: режим очікування
+  ST_MAIN_SCREEN,      // Стан: відобразити головний екран
+  ST_MAIN_SCREEN_CNT,  // Стан: відобразити статистику
+  ST_MENU_SCREEN,      // Стан: відобразити екран меню
+  ST_SUB_MENU_1,       // Стан: відобразити sub-menu1
+  ST_SUB_MENU_2,       // Стан: відобразити sub-menu2
+  ST_BATTERY_LOW,      // Стан: низький заряд батареї
+  ST_BATTERY_HIGH,     // Стан: висока напруга акумулятора
+  ST_TEMP_HIGH,        // Стан: висока температура
+  ST_SYSTEM_SCREEN,    // Стан: відображення системного екрана
+  ST_SYSTEM_MENU,      // Стан: відображення системного меню
+  ST_REBOOT_MENU,      // Стан: відобразити меню перезавантаження
+  ST_MAXWELD_SCREEN,   // Стан: відобразити екран налаштування максимального зварного шва
+  ST_INVERT_SCREEN,    // Стан: відобразити екран налаштування інвертування
+  ST_PULSE_VOLTAGE,    // Стан: відображення екрана виміряної імпульсної напруги
 };
 
+// Події машини
 enum event {
   // Приватні події машини
-  EV_NONE,  /**< Подія: немає подій, що очікують на розгляд */
-  EV_BTNDN, /**< Подія: натиснута кнопка */
-  EV_BTNUP, /**< Подія: Кнопку відпущено */
-  EV_ENCUP, /**< Подія: енкодер повертається вправо */
-  EV_ENCDN, /**< Подія: енкодер обертається вліво */
+  EV_NONE,   // Подія: немає подій, що очікують на розгляд
+  EV_BTNDN,  // Подія: натиснута кнопка
+  EV_BTNUP,  // Подія: Кнопку відпущено
+  EV_ENCUP,  // Подія: енкодер повертається вправо
+  EV_ENCDN,  // Подія: енкодер обертається вліво
 
   // Загальнодоступні події машини
-  EV_BOOTDN,       /**< Подія: натиснута кнопка при завантаженні */
-  EV_STBY_TIMEOUT, /**< Подія: закінчився таймер очікування */
-  EV_BATT_LV,      /**< Подія: подія низької напруги акумулятора */
-  EV_BATT_HV,      /**< Подія: подія високої напруги акумулятора */
-  EV_TEMP_HIGH,    /**< Подія: досягнута максимальна температура */
-  EV_EEUPD,        /**< Подія: EEPROM потребує оновлення */
-  EV_PULSE_VOLTS,  /**< Подія: утримання ножного перемикача під час імпульсу */
+  EV_BOOTDN,        // Подія: натиснута кнопка при завантаженні
+  EV_STBY_TIMEOUT,  // Подія: закінчився таймер очікування
+  EV_BATT_LV,       // Подія: подія низької напруги акумулятора
+  EV_BATT_HV,       // Подія: подія високої напруги акумулятора
+  EV_TEMP_HIGH,     // Подія: досягнута максимальна температура
+  EV_EEUPD,         // Подія: EEPROM потребує оновлення
+  EV_PULSE_VOLTS,   // Подія: утримання ножного перемикача під час імпульсу
 };
 
 /***************************************************************************************************
@@ -52,19 +52,19 @@ enum event {
 ***************************************************************************************************/
 
 // Конструкції та об'єкти
-progData pData;                                                                             /**< Робочі дані програми */
-Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET, 800000L); /**< Об'єкт OLED-дисплея */  // 800kHz
+progData pData;                                                 // Робочі дані програми
+Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET, 800000L);  // Об'єкт OLED-дисплея // 800kHz
 
 // Статичні змінні
-uint8_t mState = ST_MAIN_SCREEN;          /**< Поточний стан машини */
-uint8_t TCelsius;                         /**< Температура системи в градусах Цельсія */
-uint16_t batteryVoltage = DEF_NOM_BATT_V; /**< Поточна напруга батареї x10 */
-boolean sysMenu = false;                  /**< У структурі меню системи */
-bool autoPulseTriggered = false;          // Змінна для відстеження стану
+uint8_t mState = ST_MAIN_SCREEN;           // Поточний стан машини
+uint8_t TCelsius;                          // Температура системи в градусах Цельсія
+uint16_t batteryVoltage = DEF_NOM_BATT_V;  // Поточна напруга батареї x10
+boolean sysMenu = false;                   // У структурі меню системи
+bool autoPulseTriggered = false;           // Змінна для відстеження стану
 
 // Нестабільні змінні - будуть змінені ІСР
 volatile unsigned long lastActiveTime;
-volatile uint8_t mEvent; /**< Поточна очікувана подія машини */
+volatile uint8_t mEvent;  // Поточна очікувана подія машини
 
 // unsigned long btnPressStart = 0;
 // const unsigned long LONG_PRESS_THRESHOLD = 999; // ПОРІГ ТРИВАЛОГО НАТИСКАННЯ
@@ -78,16 +78,14 @@ void reset_mcusr(void) {
 /***************************************************************************************************
 * Налаштування програми                                                                                    *
 ***************************************************************************************************/
-/**
- *  \brief    Налаштування програми.
- */
+
+// Налаштування програми.
 void setup() {
 #if defined _DEVELOPMENT_ || defined _BOOTSYS_
   Serial.begin(_SERIAL_BAUD_);
 #endif /* _DEVELOPMENT_ || _BOOTSYS_*/
 
   // Налаштуйте стан і напрямок контактів.
-  // pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_PULSE, OUTPUT);
   pinMode(PIN_BUZZ, OUTPUT);
   pinMode(PIN_CLK, INPUT);
@@ -161,24 +159,23 @@ void setup() {
 #endif /* _DEVELOPMENT_ */
 
 
-  Wire.begin();  // Запускаємо I2C, якщо ще не було
+  Wire.begin();  // Запускаємо I2C, якщо ще не запущено
   if (!INA.begin()) {
     Serial.println("INA226 initialization failed!");
     while (1)
       ;  // Зупинка, якщо ініціалізація не вдалася
   }
-  // INA.setMaxCurrentShunt(5, 0.001);  // (79, 0.001);
+  // INA.setMaxCurrentShunt(9, 0.01);  // (79, 0.001);
   // INA.setAverage(0);                 // Default: [0] // AVG Bit [0-7]
   // INA.setBusVoltageConversionTime(4);  // Bus tCT Bit [0-7] // Default: [4]
-  updateVoltageConversionTime();  // Оновлюємо час перетворення ( tCT Bit [0-7] ) // Shunt and Bus
+  // updateVoltageConversionTime();  // Оновлюємо час перетворення ( tCT Bit [0-7] ) // Shunt and Bus
 }
 
 /***************************************************************************************************
 * Основний програмний цикл                                                                         *
 ***************************************************************************************************/
-/**
- *  \brief    Основний цикл програми.
- */
+
+//Основний цикл програми.
 void loop() {
   // Машина станів запускається кожен цикл циклу - настільки швидко, наскільки це можливо.
   stateMachine();
@@ -189,17 +186,12 @@ void loop() {
 }
 
 /***************************************************************************************************
-* State Machine                                                                                    *
+* Стан машини                                                                                      *
 ***************************************************************************************************/
-/**
- *  \brief  Implementation of state machine.
- */
 
-// Весь цей кінцевий автомат є застарілим кодом, який було значно змінено та додано. Це так
-// щось на зразок "собачого сніданку" і справді потребує повного перепису. Навіть у мене є
-// труднощі з його дотриманням і модифікації, які працюють, є приємним сюрпризом - JFF.
+//Реалізація стану машини.
 
-// // Глобальна структура для стану меню
+// Глобальна структура для стану меню
 struct MenuState {
   uint8_t selectedMenu = 0;
   uint8_t selectedMainMenu = 0;
@@ -418,7 +410,7 @@ void handleEncoderEvent() {
     pData.pulseTime = (pData.pulseTime > MIN_PULSE_TIME) ? pData.pulseTime - 1 : MIN_PULSE_TIME;
   }
 
-  updateVoltageConversionTime();  // Оновлення часу перетворення - Shunt & Bus
+  // updateVoltageConversionTime();  // Оновлення часу перетворення - Shunt & Bus
 }
 
 void handleMenuScreen(char *str) {
@@ -456,8 +448,8 @@ void handleMenuScreen(char *str) {
 }
 
 void handleSubMenu1(char *str) {
-  // Подія натискання кнопки перейде на наступний рівень структури меню. Є
-  // три пункти в меню, щоб вирішити, яке нове меню ввійти.
+  // Подія натискання кнопки перейде на наступний рівень структури меню.
+  // Є три пункти в меню, щоб вирішити, яке нове меню ввійти.
   if (mEvent == EV_BTNDN) {
     if (menuState.selectedMainMenu == 0) {
       mState = ST_SUB_MENU_2;
@@ -483,8 +475,8 @@ void handleSubMenu1(char *str) {
     mEvent = EV_NONE;
     menuState.selectedMenu = 0;
 
-    // Тип запису меню вже вибрано з попереднього меню. Ось
-    // змінні змінюються відповідно до вибраного типу.
+    // Тип запису меню вже вибрано з попереднього меню.
+    // Ось змінні змінюються відповідно до вибраного типу.
   } else if (mEvent == EV_ENCUP || mEvent == EV_ENCDN) {
     if (menuState.selectedMainMenu == 0) {
       if (mEvent == EV_ENCDN) menuState.selectedMenu = menuState.selectedMenu == 0 ? 2 : menuState.selectedMenu - 1;
@@ -708,102 +700,96 @@ uint16_t drawProgress(struct progress *o, bool clear) {
  */
 
 void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease, bool senseActiveLevel) {
-    struct progress wait;
-    bool activePinState = (senseActiveLevel == PL_ACTIVE_H);
-    unsigned long shortPulseDelay = max(1UL, (pData.pulseTime * pData.shortPulseTime) / 100);
+  struct progress wait;
+  bool activePinState = (senseActiveLevel == PL_ACTIVE_H);
+  unsigned long shortPulseDelay = max(1UL, (pData.pulseTime * pData.shortPulseTime) / 100);
 
 #ifdef _DEVELOPMENT_
-    Serial.println(F("Auto-Pulse Activated"));
+  Serial.println(F("Auto-Pulse Activated"));
 #endif
 
-    // Затримка активації
-    if (sensePin == PIN_AUTO_PULSE) {
-        wait.opt = PGR_ON;
-        wait.time = delayEngage;
-        while (!drawProgress(&wait, false)) {
-            if (digitalRead(PIN_AUTO_PULSE) != activePinState) {
-                drawProgress(&wait, true);
-                return;
-            }
-        }
-    } else {
-        delay(delayEngage);
-    }
-
-    // Звуковий сигнал активації
-    if (pData.pFlags.en_Sound) playBeep(1500, 100);
-
-    // Попередній нагрів (короткий імпульс)
-    if (pData.shortPulseTime > 0 && pData.pulseTime > 3) {
-        weldPulse(Pulse_ON);
-        delay(shortPulseDelay);
-        weldPulse(Pulse_OFF);
-        delay(shortPulseDelay);
-    }
-
-    // Основний імпульс
-    Wire.setClock(800000);
-
-    // Зчитування напруги до імпульсу
-    uint16_t NominalGauss = analogRead(A0);
-    delay(9);
-    weldPulse(Pulse_ON);  // >>> Start Pulse Enabled
-    // delayMicroseconds(750);
-    delay((pData.pulseTime)); // - 1);
-
-    // Зчитування напруги під час імпульсу
-    uint16_t PulseGauss = analogRead(A0);
-    uint16_t busVoltageDuring = INA.getBusVoltage_mV();
-
-    // delayMicroseconds(70);
-    weldPulse(Pulse_OFF);  // <<< Stop Pulse Disabled
-
-    // Розрахунок струму
-    // int16_t voltageDrop = busVoltageBefore - busVoltageDuring;
-    pData.PulseBatteryVoltage = (float)(busVoltageDuring);
-    pData.PulseAmps = map(PulseGauss, NominalGauss, 900, 0, 3880); // 10A одна поділка = 5mV (900 - 512 = 388 * 10) 3880/(900-512)=10A при 5mA.
-
-    checkForPulseDataEvent();
-
-    unsigned long startMillis = millis();
-
-    // Очікування деактивації датчика
-    while (digitalRead(sensePin) == activePinState && (millis() - startMillis < PV_DELAY)) {
-        weldPulse(Pulse_OFF);
-    }
-
-    if (millis() - startMillis > PV_DELAY) {
-        mEvent = EV_PULSE_VOLTS;
-    }
-
-    // Затримка перед повторною активацією
-    wait.opt = PGR_OFF;
-    wait.time = delayRelease;
+  // Затримка активації
+  if (sensePin == PIN_AUTO_PULSE) {
+    wait.opt = PGR_ON;
+    wait.time = delayEngage;
     while (!drawProgress(&wait, false)) {
-        continue;
+      if (digitalRead(PIN_AUTO_PULSE) != activePinState) {
+        drawProgress(&wait, true);
+        return;
+      }
     }
+  } else {
+    delay(delayEngage);
+  }
 
-    // Оновлення стану
-    pData.weldCount++;
-    lastActiveTime = millis();
+  // Звуковий сигнал активації
+  if (pData.pFlags.en_Sound) playBeep(1500, 100);
 
-    if (!digitalRead(PIN_FOOT_SWITCH)) {
-        mEvent = EV_PULSE_VOLTS;
-    }
+  // Попередній нагрів (короткий імпульс)
+  if (pData.shortPulseTime > 0 && pData.pulseTime > 3) {
+    weldPulse(Pulse_ON);
+    delay(shortPulseDelay);
+    weldPulse(Pulse_OFF);
+    delay(shortPulseDelay);
+  }
+
+  // Основний імпульс
+  Wire.setClock(800000);
+
+  // Зчитування напруги до імпульсу
+  uint16_t NominalGauss = analogRead(A0);
+  delay(9);
+  weldPulse(Pulse_ON);  // >>> Start Pulse Enabled
+  delay((pData.pulseTime));
+
+  // Зчитування напруги під час імпульсу
+  uint16_t PulseGauss = analogRead(A0);
+  uint16_t busVoltageDuring = INA.getBusVoltage_mV();
+
+  weldPulse(Pulse_OFF);  // <<< Stop Pulse Disabled
+
+  // Розрахунок струму
+  pData.PulseBatteryVoltage = (float)(busVoltageDuring);
+  pData.PulseAmps = map(PulseGauss, NominalGauss, 900, 0, 3880);  // 10A одна поділка = 5mV (900 - 512 = 388 * 10) 3880/(900-512)=10A при 5mA.
+
+  // checkForPulseDataEvent();
+
+  unsigned long startMillis = millis();
+
+  // Очікування деактивації датчика
+  while (digitalRead(sensePin) == activePinState && (millis() - startMillis < PV_DELAY)) {
+    weldPulse(Pulse_OFF);
+  }
+
+  if (millis() - startMillis > PV_DELAY) {
+    mEvent = EV_PULSE_VOLTS;
+  }
+
+  // Затримка перед повторною активацією
+  wait.opt = PGR_OFF;
+  wait.time = delayRelease;
+  while (!drawProgress(&wait, false)) {
+    continue;
+  }
+
+  // Оновлення стану
+  pData.weldCount++;
+  lastActiveTime = millis();
+
+  if (!digitalRead(PIN_FOOT_SWITCH)) {
+    mEvent = EV_PULSE_VOLTS;
+  }
 }
 
 void checkForLowVoltageEvent() {
   static unsigned long lastBVTime = 1;
   if (millis() - lastBVTime > BV_INTERVAL) {
     lastBVTime = millis();
-    // int newVoltage = (int)(INA.getBusVoltage() * 10.0);
-    // // updateAverageVoltage(newVoltage);
-    // batteryVoltage = (int)newVoltage;
 
 #ifdef _TESTING_
-    // Ігнорувати низький заряд акумулятора для тестування інтерфейсу. Це запобігає блокуванню низької напруги
-    // під час роботи від USB без підключеного акумулятора 12 В.
-    batteryVoltage = DEF_NOM_BATT_V; // + pData.batteryOffset;
+    // Ігнорувати низький заряд акумулятора для тестування інтерфейсу.
+    // Це запобігає блокуванню низької напруги під час роботи від USB без підключеного акумулятора 12 В.
+    batteryVoltage = DEF_NOM_BATT_V;
 #endif /* _TESTING_ */
 
     // Якщо напруга акумулятора низька, видайте подію про низьку напругу.
@@ -814,10 +800,8 @@ void checkForLowVoltageEvent() {
   }
 }
 
-/**
- *  \brief    Перевіряє температуру пристрою та реагує на результат.
- */
 
+//Перевіряє температуру пристрою та реагує на результат.
 void checkTemp() {
 
   static unsigned long lastTTime = 0;
@@ -843,29 +827,25 @@ void checkTemp() {
 }
 
 // Розрахунок напруги батареї під час імпульсу
-void checkForPulseDataEvent() {
+// void checkForPulseDataEvent() {
+//   Обмеження для напруги, якщо потрібно
+//   Наприклад, обнулити дані, якщо напруга < 3 В (30 = 3.0 В)
+//   if (pData.PulseBatteryVoltage < 30) {
+//     pData.PulseBatteryVoltage = 0;
+//     pData.PulseAmps = 0;
+//     return;
+//   }
+// }
 
-  // Обмеження для напруги, якщо потрібно
-  // Наприклад, обнулити дані, якщо напруга < 3 В (30 = 3.0 В)
-  // if (pData.PulseBatteryVoltage < 30) {
-  //   pData.PulseBatteryVoltage = 0;
-  //   pData.PulseAmps = 0;
-  //   return;
-  // }
-}
-
-/**
- *  \brief    Видає подію тайм-ауту режиму очікування, якщо час очікування минув без жодної активності.
- */
+// Видає подію тайм-ауту режиму очікування, якщо час очікування минув без жодної активності.
 void checkForSleepEvent() {
   // Час останньої активності оновлюється кожного разу, коли відбувається якась активність. Якщо тайм-аут режиму очікування
   // закінчився період без будь-якої активності, тоді видається подія тайм-ауту.
   if (lastActiveTime + STANDBY_TIME_OUT < millis())
     if (mState != ST_BATTERY_LOW) mEvent = EV_STBY_TIMEOUT;
 }
-/**
- *  \brief    Зчитує подію перемикання кнопкового перемикача поворотного енкодера.
- */
+
+// Зчитує подію перемикання кнопкового перемикача поворотного енкодера.
 void checkForBtnEvent() {
   static unsigned long lastBtnTime = 0;
   static boolean lastBtnState = B_UP;
@@ -890,9 +870,8 @@ void checkForBtnEvent() {
 /***************************************************************************************************
 * Процедури звуку зумера                                                                           *
 ***************************************************************************************************/
-/**
- *  \brief    Процедури звукового сигналу.
- */
+
+// Процедури звукового сигналу.
 
 void Boot_Sound() {
   playBeep(1000, 200);
@@ -924,9 +903,8 @@ void FootSwitch_Alarm() {
 /***************************************************************************************************
 * Перервати програму обслуговування                                                                *
 ***************************************************************************************************/
-/**
- *  \brief    Перервати рутину обслуговування.
- */
+
+// Перервати рутину обслуговування.
 void isr() {
   static volatile unsigned long lastInterruptTime = 0;
 
@@ -950,7 +928,7 @@ void isr() {
  *  \param [in] const __FlashStringHelper *line1       Line 1 text.
  *  \param [in] const __FlashStringHelper *line2       Line 2 text.
  *  \param [in] const __FlashStringHelper *line3       Line 3 text.
- *  \param [in] uint16_t                   SelectedItem Вибраний пункт меню.
+ *  \param [in] uint16_t      SelectedItem Вибраний пункт меню.
  */
 void displayMenuType1(const __FlashStringHelper *title,
                       const __FlashStringHelper *line1,
@@ -1027,11 +1005,9 @@ void setTextProp(uint8_t size, uint8_t xpos, uint8_t ypos, uint16_t color, boole
     display.setTextColor(color);
 }
 
-/**
- *  \brief    Малює рядок стану на РК-дисплеї.
- */
+// Малює рядок стану на РК-дисплеї.
 void drawStatusLine() {
-  char str[16];  // char str[8];
+  char str[16];
 
   drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
@@ -1044,9 +1020,7 @@ void drawStatusLine() {
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 1, valStr(str, batteryVoltage / 10, VF_BATTV), FPSTR(LS_VUNITS));
 }
 
-/**
- *  \brief  Намалюйте головний екран на РК-дисплеї.
- */
+// Малюємо головний екран на РК-дисплеї.
 void displayMainScreen(bool signaled) {
   char str[16];
 
@@ -1074,10 +1048,6 @@ void displayMainScreen() {
   displayMainScreen(false);
 }
 
-/**
- *  \brief  Відобразити на РК-дисплеї повідомлення НИЗЬКИЙ РІВЕНЬ АККУМУЛЯТОРА та напругу АККУМУЛЯТОРА.
- */
-
 void drawText(uint8_t size, int16_t x, int16_t y, const __FlashStringHelper *text) {
   setTextProp(size, x, y);
   display.print(text);
@@ -1089,6 +1059,7 @@ void drawValueWithUnits(uint8_t size, int16_t x, int16_t y, const char *value, c
   display.print(units);
 }
 
+// Відобразити на РК-дисплеї повідомлення НИЗЬКИЙ РІВЕНЬ напруги АККУМУЛЯТОРА.
 void displayBatteryStatus(const __FlashStringHelper *statusText, const char *value) {
   char str[5];
 
@@ -1107,6 +1078,7 @@ void displayBatteryStatus(const __FlashStringHelper *statusText, const char *val
   display.display();
 }
 
+// Відобразити на РК-дисплеї повідомлення про РІВЕНЬ та СТАТУС ТЕМПЕРАТУРИ.
 void displayTemperatureStatus(const __FlashStringHelper *statusText, const __FlashStringHelper *adviceText) {
   char str[5];
 
@@ -1165,10 +1137,7 @@ void message(const __FlashStringHelper *line1,
   if (displayTime) delay(displayTime * 1000);
 }
 
-/**
- *  \brief    Відобразити екран SPLASH.
- */
-
+//  Відобразити екран SPLASH.
 void splash() {
   display.clearDisplay();
   display.display();
@@ -1193,6 +1162,7 @@ void splash() {
   display.display();
 }
 
+//  Повідомлення "FOOT SWITCH ERROR!".
 void foot_switch_error() {
   display.clearDisplay();
   display.display();
@@ -1210,7 +1180,7 @@ void foot_switch_error() {
 }
 
 /***************************************************************************************************
-* Utility Conversion Functions                                                                     *
+* Утиліта перетворення функцій                                                                     *
 ***************************************************************************************************/
 /**
  *  \brief                    Повертає символьний рядок, що представляє відформатоване числове значення.
@@ -1240,7 +1210,7 @@ char *valStr(char *str, uint16_t val, vf_Type fType) {
 }
 
 /***************************************************************************************************
-* Utility EEPROM Functions                                                                         *
+* Утиліта EEPROM функцій                                                                           *
 ***************************************************************************************************/
 /**
  *  \brief                    Скиньте EEPROM і програмні дані до заводських налаштувань за замовчуванням.
@@ -1285,33 +1255,33 @@ void resetEEPROM(boolean full) {
 #endif /* _DEVELOPMENT_ || _BOOTSYS_*/
 }
 
-void updateVoltageConversionTime() {  // Оновлюємо час перетворення ( tCT Bit [0-7] )
-  uint16_t conversionTime = calculateVoltageConversionTime(pData.pulseTime);
-  INA.setShuntVoltageConversionTime(conversionTime);
-  INA.setBusVoltageConversionTime(conversionTime);
+// void updateVoltageConversionTime() {  // Оновлюємо час перетворення ( tCT Bit [0-7] )
+//   uint16_t conversionTime = calculateVoltageConversionTime(pData.pulseTime);
+//   INA.setShuntVoltageConversionTime(conversionTime);
+//   INA.setBusVoltageConversionTime(conversionTime);
 
-#ifdef _DEVELOPMENT_
-  // Serial.print(F("Read: Shunt tCT Bit: "));
-  // Serial.print(INA.getShuntVoltageConversionTime());
-  // Serial.print(F("  | Bus tCT Bit: "));
-  // Serial.println(INA.getBusVoltageConversionTime());
-#endif /* _DEVELOPMENT_ */
-}
+// #ifdef _DEVELOPMENT_
+//   // Serial.print(F("Read: Shunt tCT Bit: "));
+//   // Serial.print(INA.getShuntVoltageConversionTime());
+//   // Serial.print(F("  | Bus tCT Bit: "));
+//   // Serial.println(INA.getBusVoltageConversionTime());
+// #endif /* _DEVELOPMENT_ */
+// }
 
-uint16_t calculateVoltageConversionTime(uint16_t pulseTime) {
-  if (pulseTime == 1) {
-    return 2;
-  } else if (pulseTime >= 2 && pulseTime <= 3) {
-    return 4;
-  } else if (pulseTime >= 4 && pulseTime <= 7) {
-    return 5;
-  } else if (pulseTime >= 8 && pulseTime <= 15) {
-    return 6;
-  } else if (pulseTime >= 16) {
-    return 7;
-  }
-  return 3;  // Значення за замовчуванням
-}
+// uint16_t calculateVoltageConversionTime(uint16_t pulseTime) {
+//   if (pulseTime == 1) {
+//     return 2;
+//   } else if (pulseTime >= 2 && pulseTime <= 3) {
+//     return 4;
+//   } else if (pulseTime >= 4 && pulseTime <= 7) {
+//     return 5;
+//   } else if (pulseTime >= 8 && pulseTime <= 15) {
+//     return 6;
+//   } else if (pulseTime >= 16) {
+//     return 7;
+//   }
+//   return 3;  // Значення за замовчуванням
+// }
 
 void playBeep(uint16_t frequency, uint16_t duration) {
   tone(PIN_BUZZ, frequency, duration);  // Генерує звук
@@ -1327,17 +1297,17 @@ void reboot() {
 
 // Логування інформації про імпульс
 void logPulseInfo() {
-#ifdef _DEVELOPMENT_
-  Serial.print(F("Read: tCT Bit: "));
-  Serial.print(INA.getShuntVoltageConversionTime());
-  Serial.print(F("  | Pulse Time: "));
-  Serial.println(pData.pulseTime);
-#endif /* _DEVELOPMENT_ */
+  // #ifdef _DEVELOPMENT_
+  //   Serial.print(F("Read: tCT Bit: "));
+  //   Serial.print(INA.getShuntVoltageConversionTime());
+  //   Serial.print(F("  | Pulse Time: "));
+  //   Serial.println(pData.pulseTime);
+  // #endif /* _DEVELOPMENT_ */
 }
 
 void loadEEPROM() {
-  // Перевірте цілісність EEPROM, зчитавши магічне число. 
-  // Якщо воно пошкоджене, то відбувається повне скидання до заводських налаштувань, 
+  // Перевірте цілісність EEPROM, зчитавши магічне число.
+  // Якщо воно пошкоджене, то відбувається повне скидання до заводських налаштувань,
   // інакше з EEPROM завантажуються програмні дані.
   uint32_t uniqueID;
 
@@ -1348,9 +1318,7 @@ void loadEEPROM() {
   else
     EEPROM.get(EEA_PDATA, pData);
 }
-/**
- *  \brief    Оновлює дані EEPROM локальною структурою даних програми.
- */
+// Оновлюємо дані EEPROM локальною структурою даних програми.
 void updateEEPROM() {
   static unsigned long lastEEUpdatetime = 0;
 
@@ -1358,7 +1326,7 @@ void updateEEPROM() {
   if (millis() - lastEEUpdatetime > EEPROM_UPDATE_T) {
     lastEEUpdatetime = millis();
 
-    // Запишіть поточні дані програми в EEPROM.
+    // Запис поточних даних програми в EEPROM.
     EEPROM.put(EEA_PDATA, pData);
 
 #ifdef _DEVELOPMENT_
