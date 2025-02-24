@@ -165,8 +165,8 @@ void setup() {
     while (1)
       ;  // Зупинка, якщо ініціалізація не вдалася
   }
-  INA.setMaxCurrentShunt(9, 0.01);  // (79, 0.001);
-  // INA.setAverage(0);                 // Default: [0] // AVG Bit [0-7]
+  INA.setMaxCurrentShunt(8, 0.01);  // (79, 0.001);
+  INA.setAverage(4);                 // Default: [0] // AVG Bit [0-7]
   // INA.setBusVoltageConversionTime(4);  // Bus tCT Bit [0-7] // Default: [4]
   // updateVoltageConversionTime();  // Оновлюємо час перетворення ( tCT Bit [0-7] ) // Shunt and Bus
 }
@@ -1009,7 +1009,7 @@ void drawStatusLine() {
   drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
   // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 7, 40, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
   // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
-  float batteryAmphere = INA.getCurrent_mA();
+  uint16_t batteryAmphere = abs(INA.getCurrent_mA());
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, batteryAmphere / 10, VF_BATTV), FPSTR(LS_AUNITS));
 
   // Малюємо лінію під статусною строкою
@@ -1018,7 +1018,7 @@ void drawStatusLine() {
   // Відображення середньої напруги
 
   batteryVoltage = (INA.getBusVoltage_mV());  // Читаємо напругу з модуля INA226
-  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 1, valStr(str, batteryVoltage / 10, VF_BATTV), FPSTR(LS_VUNITS));
+  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 1, valStr(str, (abs(batteryVoltage)) / 10, VF_BATTV), FPSTR(LS_VUNITS));
 }
 
 // Малюємо головний екран на РК-дисплеї.
