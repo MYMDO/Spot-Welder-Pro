@@ -165,7 +165,7 @@ void setup() {
     while (1)
       ;  // Зупинка, якщо ініціалізація не вдалася
   }
-  // INA.setMaxCurrentShunt(9, 0.01);  // (79, 0.001);
+  INA.setMaxCurrentShunt(9, 0.01);  // (79, 0.001);
   // INA.setAverage(0);                 // Default: [0] // AVG Bit [0-7]
   // INA.setBusVoltageConversionTime(4);  // Bus tCT Bit [0-7] // Default: [4]
   // updateVoltageConversionTime();  // Оновлюємо час перетворення ( tCT Bit [0-7] ) // Shunt and Bus
@@ -639,17 +639,14 @@ struct progress {
 #define PGR_ON (1 << 0)
 #define PGR_INIT (1 << 7)
   uint16_t opt;
-
   uint16_t step;
   unsigned long millis;
 };
 
 /**
  *  \brief                      Малює індикатор прогресу
- *
  *  \param [in/out] o           структура контролю прогресу
  *  \param [in] clear           очистити індикатор прогресу, якщо true
- *
  *  \return Нуль, якщо прогрес не завершено, інакше нуля немає
  */
 
@@ -1010,12 +1007,16 @@ void drawStatusLine() {
   char str[16];
 
   drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
-  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
+  // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 7, 40, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
+  // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
+  float batteryAmphere = INA.getCurrent_mA();
+  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, batteryAmphere / 10, VF_BATTV), FPSTR(LS_AUNITS));
 
   // Малюємо лінію під статусною строкою
   display.drawLine(0, CHR_H + 3, SSD1306_LCDWIDTH - 1, CHR_H + 3, WHITE);
 
   // Відображення середньої напруги
+
   batteryVoltage = (INA.getBusVoltage_mV());  // Читаємо напругу з модуля INA226
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 1, valStr(str, batteryVoltage / 10, VF_BATTV), FPSTR(LS_VUNITS));
 }
@@ -1028,10 +1029,13 @@ void displayMainScreen(bool signaled) {
   drawStatusLine();
 
   // Запишіть поточне значення тривалості зварювального імпульсу та одиниці виміру.
-  setTextProp(4, 1, 16 + CHR_H / 2);
+  setTextProp(4, 0, 16 + CHR_H / 2);
   display.print(valStr(str, pData.pulseTime, VF_PLSDLY));
-  setTextProp(2, 4 * CHR_W * 4 + CHR_W, 16 + CHR_H / 2 + 4 * CHR_H - 2 * CHR_H - 2, WHITE, signaled);
+  setTextProp(2, 12 * CHR_W, 32, WHITE, signaled); // setTextProp(2, 17 * CHR_W, 16 + CHR_H / 2 + 4 * CHR_H - 2 * CHR_H, WHITE, signaled);
   display.print(FPSTR(LS_MS));
+  
+  // drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
+  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 16, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
 
   // Буферні змінні для значень
   char pulseAmpsStr[8];
@@ -1201,7 +1205,7 @@ char *valStr(char *str, uint16_t val, vf_Type fType) {
     case VF_BATTA: sprintf_P(str, PSTR("%5.1u"), val); break;
     case VF_WELDCNT: sprintf_P(str, PSTR("%5.1u"), val); break;
     case VF_TEMP: sprintf_P(str, PSTR("%5.1u"), val); break;
-    case VF_PLSDLY: sprintf_P(str, PSTR("%4.1u"), val); break;
+    case VF_PLSDLY: sprintf_P(str, PSTR("%3.1u"), val); break; // pData.pulseTime
     case VF_SHTPLS: sprintf_P(str, PSTR("%3.1u"), val); break;
     case VF_DELAY: sprintf_P(str, PSTR("%1.1u.%01u"), val / 10, val % 10); break;
   }
