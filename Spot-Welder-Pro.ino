@@ -1035,7 +1035,7 @@ void displayMainScreen(bool signaled) {
   display.print(FPSTR(LS_MS));
   
   // drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
-  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 16, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
+  drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 20, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
 
   // Буферні змінні для значень
   char pulseAmpsStr[8];
