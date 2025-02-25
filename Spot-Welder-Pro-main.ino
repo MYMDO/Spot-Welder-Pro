@@ -167,8 +167,6 @@ void setup() {
   }
   INA.setMaxCurrentShunt(8, 0.01);  // (79, 0.001);
   INA.setAverage(4);                 // Default: [0] // AVG Bit [0-7]
-  // INA.setBusVoltageConversionTime(4);  // Bus tCT Bit [0-7] // Default: [4]
-  // updateVoltageConversionTime();  // Оновлюємо час перетворення ( tCT Bit [0-7] ) // Shunt and Bus
 }
 
 /***************************************************************************************************
@@ -409,8 +407,6 @@ void handleEncoderEvent() {
   } else {
     pData.pulseTime = (pData.pulseTime > MIN_PULSE_TIME) ? pData.pulseTime - 1 : MIN_PULSE_TIME;
   }
-
-  // updateVoltageConversionTime();  // Оновлення часу перетворення - Shunt & Bus
 }
 
 void handleMenuScreen(char *str) {
@@ -749,8 +745,6 @@ void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease
   pData.PulseBatteryVoltage = (float)(busVoltageDuring);
   pData.PulseAmps = map(PulseGauss, NominalGauss, 900, 0, 3880);  // 10A одна поділка = 5mV (900 - 512 = 388 * 10) 3880/(900-512)=10A при 5mA.
 
-  // checkForPulseDataEvent();
-
   unsigned long startMillis = millis();
 
   // Очікування деактивації датчика
@@ -822,17 +816,6 @@ void checkTemp() {
     if (TCelsius > DEF_HIGH_TEMP_ALARM) mEvent = EV_NONE;  // EV_TEMP_HIGH;
   }
 }
-
-// Розрахунок напруги батареї під час імпульсу
-// void checkForPulseDataEvent() {
-//   Обмеження для напруги, якщо потрібно
-//   Наприклад, обнулити дані, якщо напруга < 3 В (30 = 3.0 В)
-//   if (pData.PulseBatteryVoltage < 30) {
-//     pData.PulseBatteryVoltage = 0;
-//     pData.PulseAmps = 0;
-//     return;
-//   }
-// }
 
 // Видає подію тайм-ауту режиму очікування, якщо час очікування минув без жодної активності.
 void checkForSleepEvent() {
@@ -1007,8 +990,6 @@ void drawStatusLine() {
   char str[16];
 
   drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
-  // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 7, 40, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
-  // drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
   uint16_t batteryAmphere = abs(INA.getCurrent_mA());
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 1, valStr(str, batteryAmphere / 10, VF_BATTV), FPSTR(LS_AUNITS));
 
@@ -1031,10 +1012,9 @@ void displayMainScreen(bool signaled) {
   // Запишіть поточне значення тривалості зварювального імпульсу та одиниці виміру.
   setTextProp(4, 0, 16 + CHR_H / 2);
   display.print(valStr(str, pData.pulseTime, VF_PLSDLY));
-  setTextProp(2, 12 * CHR_W, 32, WHITE, signaled); // setTextProp(2, 17 * CHR_W, 16 + CHR_H / 2 + 4 * CHR_H - 2 * CHR_H, WHITE, signaled);
+  setTextProp(2, 12 * CHR_W, 32, WHITE, signaled);
   display.print(FPSTR(LS_MS));
   
-  // drawText(1, 0, 1, (pData.pFlags.en_autoPulse ? FPSTR(LS_AUTO_BAR) : FPSTR(LS_MANUAL_BAR)));
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 20, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
 
   // Буферні змінні для значень
@@ -1258,34 +1238,6 @@ void resetEEPROM(boolean full) {
 
 #endif /* _DEVELOPMENT_ || _BOOTSYS_*/
 }
-
-// void updateVoltageConversionTime() {  // Оновлюємо час перетворення ( tCT Bit [0-7] )
-//   uint16_t conversionTime = calculateVoltageConversionTime(pData.pulseTime);
-//   INA.setShuntVoltageConversionTime(conversionTime);
-//   INA.setBusVoltageConversionTime(conversionTime);
-
-// #ifdef _DEVELOPMENT_
-//   // Serial.print(F("Read: Shunt tCT Bit: "));
-//   // Serial.print(INA.getShuntVoltageConversionTime());
-//   // Serial.print(F("  | Bus tCT Bit: "));
-//   // Serial.println(INA.getBusVoltageConversionTime());
-// #endif /* _DEVELOPMENT_ */
-// }
-
-// uint16_t calculateVoltageConversionTime(uint16_t pulseTime) {
-//   if (pulseTime == 1) {
-//     return 2;
-//   } else if (pulseTime >= 2 && pulseTime <= 3) {
-//     return 4;
-//   } else if (pulseTime >= 4 && pulseTime <= 7) {
-//     return 5;
-//   } else if (pulseTime >= 8 && pulseTime <= 15) {
-//     return 6;
-//   } else if (pulseTime >= 16) {
-//     return 7;
-//   }
-//   return 3;  // Значення за замовчуванням
-// }
 
 void playBeep(uint16_t frequency, uint16_t duration) {
   tone(PIN_BUZZ, frequency, duration);  // Генерує звук
