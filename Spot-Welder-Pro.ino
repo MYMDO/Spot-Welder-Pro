@@ -166,7 +166,7 @@ void setup() {
       ;  // Зупинка, якщо ініціалізація не вдалася
   }
   INA.setMaxCurrentShunt(8, 0.01);  // (79, 0.001);
-  INA.setAverage(4);                 // Default: [0] // AVG Bit [0-7]
+  INA.setAverage(4);                // Default: [0] // AVG Bit [0-7]
 }
 
 /***************************************************************************************************
@@ -1014,7 +1014,7 @@ void displayMainScreen(bool signaled) {
   display.print(valStr(str, pData.pulseTime, VF_PLSDLY));
   setTextProp(2, 12 * CHR_W, 32, WHITE, signaled);
   display.print(FPSTR(LS_MS));
-  
+
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 20, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
 
   // Буферні змінні для значень
@@ -1185,7 +1185,7 @@ char *valStr(char *str, uint16_t val, vf_Type fType) {
     case VF_BATTA: sprintf_P(str, PSTR("%5.1u"), val); break;
     case VF_WELDCNT: sprintf_P(str, PSTR("%5.1u"), val); break;
     case VF_TEMP: sprintf_P(str, PSTR("%5.1u"), val); break;
-    case VF_PLSDLY: sprintf_P(str, PSTR("%3.1u"), val); break; // pData.pulseTime
+    case VF_PLSDLY: sprintf_P(str, PSTR("%3.1u"), val); break;  // pData.pulseTime
     case VF_SHTPLS: sprintf_P(str, PSTR("%3.1u"), val); break;
     case VF_DELAY: sprintf_P(str, PSTR("%1.1u.%01u"), val / 10, val % 10); break;
   }
