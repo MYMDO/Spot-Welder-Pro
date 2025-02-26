@@ -1,16 +1,16 @@
 /*
  Copyright (C) 2011 J. Coliz <maniacbug@ymail.com>
  
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- version 2 as published by the Free Software Foundation.
+ Ця програма є вільним програмним забезпеченням; ви можете розповсюджувати її та/або 
+ змінювати відповідно до умов Стандартної публічної ліцензії GNU версії 2, 
+ опублікованої Фондом вільного програмного забезпечення.
  */
 
 /**
  * @file printf.h
  *
- * Setup necessary to direct stdout to the Arduino Serial library, which
- * enables 'printf'
+ * Налаштування, необхідне для спрямування stdout до бібліотеки Arduino Serial, яка увімкне 'printf'
+ * 
  */
 
 #ifndef __PRINTF_H__
@@ -29,7 +29,7 @@ void printf_begin(void) {
 }
 
 #else
-#error This example is only for use on Arduino.
+#error Цей приклад призначений лише для використання на Arduino.
 #endif  // ARDUINO
 
 #endif  // __PRINTF_H__

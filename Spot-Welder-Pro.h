@@ -1,7 +1,7 @@
 #ifndef _SPOT_WELDER_PRO_H
 #define _SPOT_WELDER_PRO_H
 
-// General macros
+// Загальні макроси
 #define str(s) #s
 #define xstr(s) str(s)
 
@@ -15,101 +15,102 @@
 #define _COPYRIGHT_ "2024"
 
 /***************************************************************************************************
-* User Configuration                                                                               *
+* Конфігурація користувача                                                                         *
 ***************************************************************************************************/
 
-#define _DEVELOPMENT_ /**< Дозволяє друкувати діагностику */
-// #define _BOOTSYS_                    /**< Примусове завантаження в системне меню для тестування */
+#define _DEVELOPMENT_  // Дозволяє друкувати діагностику
+// #define _BOOTSYS_  // Примусове завантаження в системне меню для тестування
 
-#define _LANG_EN_            /**< Language:  _LANG_EN/DE/FR/ES/IT_ */
-// #define _TESTING_            /**< Дозволяє ігнорувати тривогу про низький заряд батареї */
-#define _SERIAL_BAUD_ 115200 /**< Швидкість зв'язку для послідовного налагодження */
+#define _LANG_EN_  // Language:  _LANG_EN/DE/FR/ES/IT_
+// #define _TESTING_  // Дозволяє ігнорувати тривогу про низький заряд батареї
+#define _SERIAL_BAUD_ 115200  // Швидкість зв'язку для послідовного налагодження
 
 /***************************************************************************************************
-* Pin and interrupt definitions                                                                    *
+* Визначення виводів та переривань                                                                 *
 ***************************************************************************************************/
 
-#define ENC_uint16_t 0    /**< Rotary interrupt for CLK input (Ph0) */
-#define PIN_CLK 2         /**< Rotary encoder CLK input (Ph0) */
-#define PIN_DT 8          /**< Rotary encoder DT input (Ph1) */
-#define PIN_SW 6          /**< Rotary encoder push button switch input */
-#define PIN_FOOT_SWITCH 7 /**< Foot switch sense input */
-#define PIN_AUTO_PULSE 3  /**< Auto-pulse sense input */
-#define PIN_PULSE 5       /**< Weld pulse output */
-#define PIN_BUZZ A1       /**< Buzzer output */
-#define PIN_TEMP A3       /**< Buzzer output */
+#define ENC_uint16_t 0     // Поворотне переривання для входу CLK (Ph0)
+#define PIN_CLK 2          // Вхід CLK датчика повороту (Ph0)
+#define PIN_DT 8           // Поворотний енкодер DT вхід (Ph1)
+#define PIN_SW 6           // Поворотний енкодер кнопковий перемикач вхід
+#define PIN_FOOT_SWITCH 7  // Вхід сигналу ножного перемикача
+#define PIN_AUTO_PULSE 3   // Автоімпульсний сенсорний вхід
+#define PIN_PULSE 5        // Вихід зварювального імпульсу
+#define PIN_BUZZ A1        // Вихід звукового сигналу
+#define PIN_TEMP A3        // Вхідний сигнал температури
 
 /***************************************************************************************************
-* Macros                                                                                           *
+* Макроси                                                                                          *
 ***************************************************************************************************/
 // Значення за замовчуванням для операційних змінних
-#define DEF_AUTO_PLSDELAY 20      /**< Default auto pulse delay time (ms*100) */
-#define DEF_PULSE_TIME 5          /**< Default pulse time (ms) */
+#define DEF_AUTO_PLSDELAY 20  // Час автоматичної затримки імпульсу за замовчуванням (мс*100)
+#define DEF_PULSE_TIME 5      // Час імпульсу за замовчуванням (мс)
 #define DEF_SHUNT_VOLTAGE 0
-#define DEF_MAX_PULSE_TIME 100    /**< Default maximum pulse time (ms) */
-#define DEF_SPULSE_TIME 0         /**< Default short pulse time (% of pulse time) */
-#define DEF_NOM_BATT_V 5400       /**< Default nominal battery voltage (for testing) */
-#define DEF_MAX_BATT_V 5400       /**< Default maximum battery voltage (V*1000) */
-#define DEF_PULSE_VOLTAGE 4000    /**< Default voltage during pulse (for testing) (V*1000) */
-#define DEF_PULSE_AMPS 5000       /**< Default Amps during pulse (for testing) (A*1000) */
-#define DEF_BATTERY_OFFSET 0      /**< Default battery calibration offset (V*1000) */
-#define DEF_BATT_ALARM 3500       /**< Default low battery voltage (V*1000) */
-#define DEF_HIGH_BATT_ALARM 5500  /**< Default high battery voltage (V*1000) */
-#define DEF_HIGH_TEMP_ALARM 65    /**< Default high temperature | Off in >>> if (TCelsius > DEF_HIGH_TEMP_ALARM) mEvent = EV_NONE;  // EV_TEMP_HIGH; */
-#define DEF_AUTO_PULSE true       /**< Default Auto-pulse enable */
-#define DEF_WELD_SOUND true       /**< Default Weld Sound enable */
-#define DEF_OLED_INVERT false     /**< Default OLED orientation */
+#define DEF_MAX_PULSE_TIME 100    // За замовчуванням максимальний час імпульсу (мс)
+#define DEF_SPULSE_TIME 0         // Час короткого імпульсу за замовчуванням (% від часу імпульсу)
+#define DEF_NOM_BATT_V 5400       // Номінальна напруга акумулятора за замовчуванням (для тестування)
+#define DEF_MAX_BATT_V 5400       // Максимальна напруга батареї за замовчуванням (В*1000)
+#define DEF_PULSE_VOLTAGE 4000    // Напруга за замовчуванням під час імпульсу (для тестування) (В*1000)
+#define DEF_PULSE_AMPS 5000       // За замовчуванням Ампер під час імпульсу (для тестування) (А*1000)
+#define DEF_BATTERY_OFFSET 0      // Зміщення калібрування батареї за замовчуванням (V*1000)
+#define DEF_BATT_ALARM 3500       // За замовчуванням низька напруга батареї (В*1000)
+#define DEF_HIGH_BATT_ALARM 5500  // За замовчуванням висока напруга акумулятора (В*1000)
+#define DEF_HIGH_TEMP_ALARM 65    // Висока температура за замовчуванням | Off in >>> if (TCelsius > DEF_HIGH_TEMP_ALARM) mEvent = EV_NONE;  // EV_TEMP_HIGH;
+#define DEF_AUTO_PULSE true       // За замовчуванням Увімкнення автоімпульсу
+#define DEF_WELD_SOUND true       // За замовчуванням звук зварювання ввімкнено
+#define DEF_OLED_INVERT false     // Орієнтація OLED за замовчуванням
 
 // Обмеження для операційних змінних
-#define MIN_PULSE_TIME 1      /**< Minimum weld pulse time */
-#define MAX_PULSE_TIME 100    /**< Absolute maximum weld pulse time */
-#define MAX_APULSE_DELAY 50   /**< Maximum auto pulse delay */
-#define MIN_APULSE_DELAY 5    /**< Minimum auto pulse delay */
-#define MAX_SPULSE_TIME 100   /**< Maximum short pulse time */
-#define MIN_SPULSE_TIME 0     /**< Minimum short pulse time */
-#define MAX_BATT_ALARM 5400   /**< Maximum low battery alarm voltage */
-#define MIN_BATT_BALARM 3500  /**< Minimum low battery alarm voltage */
+#define MIN_PULSE_TIME 1      // Мінімальний час зварювального імпульсу
+#define MAX_PULSE_TIME 100    // Абсолютний максимальний час зварювального імпульсу
+#define MAX_APULSE_DELAY 50   // Максимальна автоматична затримка імпульсу
+#define MIN_APULSE_DELAY 5    // Мінімальна затримка автоматичного імпульсу
+#define MAX_SPULSE_TIME 100   // Максимальний час короткого імпульсу
+#define MIN_SPULSE_TIME 0     // Мінімальний час короткого імпульсу
+#define MAX_BATT_ALARM 5400   // Максимальна тривожна напруга низького рівня заряду акумулятора
+#define MIN_BATT_BALARM 3500  // Мінімальна напруга тривоги низького рівня заряду акумулятора
 
 // Макроси синхронізації
-#define STANDBY_TIME_OUT 640000L /**< Device sleep timeout (ms) */  // 6400000L
-#define EEPROM_UPDATE_T 60000                                        /**< EEPROM update time (ms) */
-#define WP_RETRIGGER_DELAY 50 /**< Weld pulse re-trigger delay (ms /10) */
-#define FS_TRIGGER_DELAY 200  /**< Foot switch activation delay (ms) */
-#define RS_DEBOUNCE 20 /*20*/ /**< Rotary encoder & switch debounce time (ms) */
-#define BV_INTERVAL 2000      /**< Battery voltage measurement interval (ms) */
-#define T_INTERVAL 10000      /**< temperature measurement interval (ms) */
-#define PV_DELAY 1000         /**< Time the foot switch has to be hold before the pulse data is shown after a pulse (ms) */
+#define STANDBY_TIME_OUT 640000L  // Тайм-аут сплячого режиму пристрою (мс)  // 6400000L
+#define EEPROM_UPDATE_T 60000     // Час оновлення EEPROM (мс)
+#define WP_RETRIGGER_DELAY 50     // Затримка повторного запуску зварювального імпульсу (мс /10)
+#define FS_TRIGGER_DELAY 200      // Затримка активації ножного перемикача (мс)
+#define RS_DEBOUNCE 20 /*20*/     // Час відскоку поворотного енкодера та перемикача (мс)
+#define BV_INTERVAL 2000          // Інтервал вимірювання напруги акумулятора (мс)
+#define T_INTERVAL 10000          // Інтервал вимірювання температури (мс)
+#define PV_DELAY 1000             // Час, протягом якого потрібно утримувати ножний перемикач,
+// перш ніж дані про імпульс з'являться на екрані після імпульсу (мс)
 
 // Макет екрана дисплея
-#define CHR_W 6            /**< Width of character [size=1] (pixels) */
-#define CHR_H 8            /**< Height of character [size=1] (pixels) */
-#define LINE_H (CHR_H + 2) /**< Height of line [size=1] (pixels) */
+#define CHR_W 6             // Ширина символу [size=1] (пікселів)
+#define CHR_H 8             // Висота символу [size=1] (пікселів)
+#define LINE_H (CHR_H + 2)  // Висота рядка [size=1] (пікселів)
 
 // Макроси для визначення логічних станів
-#define DD_READ true      /**< Data transfer direction - read */
-#define DD_WRITE false    /**< Data transfer direction - write */
-#define Pulse_ON true         /**< General macro for ON state */
-#define Pulse_OFF false       /**< General macro for OFF state */
-#define B_DN true         /**< General macro for DOWN state */
-#define B_UP false        /**< General macro for UP state */
-#define PL_ACTIVE_H false /**< Pin logic macro for Active High */
-#define PL_ACTIVE_L true  /**< Pin logic macro for Active Low */
+#define DD_READ true       // Напрямок передачі даних - читання
+#define DD_WRITE false     // Напрямок передачі даних - запис
+#define Pulse_ON true      // Загальний макрос для стану Pulse ON
+#define Pulse_OFF false    // Загальний макрос для стану Pulse OFF
+#define B_DN true          // Загальний макрос для стану DOWN
+#define B_UP false         // Загальний макрос для стану UP
+#define PL_ACTIVE_H false  // Макрос логіки виводу для активного високого рівня
+#define PL_ACTIVE_L true   // Макрос логіки виводу для активного низького рівня
 
 // EEPROM macros
-#define EEA_ID 0               /**< Address of unique ID */
-#define EEA_PDATA (EEA_ID + 4) /**< Eeprom address of program data */
-#define EE_UNIQUEID 0x18fae9c8 /**< Unique Eeprom verification ID */
-#define EE_FULL_RESET true     /**< Reset parameter to reset all Eeprom parameters */
+#define EEA_ID 0                // Адреса унікального ідентифікатора
+#define EEA_PDATA (EEA_ID + 4)  // EEPROM-адреса програмних даних
+#define EE_UNIQUEID 0x18fae9c8  // Унікальний ідентифікатор верифікації EEPROM
+#define EE_FULL_RESET true      // Параметр скидання для скидання всіх параметрів EEPROM
 
 // Маскування макросів під функції - робить код більш читабельним
-/** Цей макрос зчитує стан кнопкового перемикача на енкодері. */
+// Цей макрос зчитує стан кнопкового перемикача на енкодері.
 #define btnState() (!digitalRead(PIN_SW))
 
-/** Цей макрос керує зварювальним імпульсом. */
+// Цей макрос керує зварювальним імпульсом.
 #define weldPulse(state) digitalWrite(PIN_PULSE, state ? HIGH : LOW)
 
-/** Куди подівся цей макрос? Він був у WString.h */
-#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper*>(pstr_pointer))
+// Куди подівся цей макрос? Він був у WString.h
+#define FPSTR(pstr_pointer) (reinterpret_cast<const __FlashStringHelper *>(pstr_pointer))
 
 /***************************************************************************************************
 * OLED Display Configuration                                                                       *
@@ -118,51 +119,51 @@
 #define SCREEN_WIDTH 128  // Ширина OLED-дисплея, в пікселях
 #define SCREEN_HEIGHT 64  // Висота OLED-дисплея, в пікселях
 
-#define OLED_RESET 4   /**< OLED mode */
-#define OLED_INVERT 2  /**< OLED defined orientation mode - check OLED doc'n */
-#define SPLASHTIME 255 /**< Splash screen time (ms) */
+#define OLED_RESET 4    // Режим скидання OLED-дисплея
+#define OLED_INVERT 2   // Режим орієнтації, визначений OLED, - перевірте документацію до OLED
+#define SPLASHTIME 255  // Час затримки заставки на екрані (мс)
 
 
 /***************************************************************************************************
-* Structure, union, and enumerated type definitions                                                *
+* Визначення структури, об'єднання та перелічених типів                                            *
 ***************************************************************************************************/
 
-typedef enum {             /**< Type enumerations for format of variables */
-               VF_BATTALM, /**< Battery alarm voltage */
-               VF_TEMPALM, /**< Temperature Alarm value */
-               VF_BATTV,   /**< Battery voltage */
-               VF_BATTA,   /**< Battery Amps */
-               VF_TEMP,    /**< Temperature */
-               VF_WELDCNT, /**< Weld count */
-               VF_PLSDLY,  /**< Pulse delay */
-               VF_SHTPLS,  /**< Short pulse duration */
-               VF_DELAY    /**< Delay */
+typedef enum {  // Перерахування типів для формату змінних
+  VF_BATTALM,   // Напруга тривоги акумулятора
+  VF_TEMPALM,   // Температура Значення тривоги
+  VF_BATTV,     // Напруга акумулятора
+  VF_BATTA,     // Акумуляторна батарея Ампери
+  VF_TEMP,      // Температура
+  VF_WELDCNT,   // Кількість зварних швів
+  VF_PLSDLY,    // Затримка імпульсу
+  VF_SHTPLS,    // Коротка тривалість імпульсу
+  VF_DELAY      // Затримка.
 } vf_Type;
 
-typedef struct progData {       /**< Program operating data structure */
-  uint8_t autoPulseDelay;       /**< Auto-pulse delay (ms/100) */
-  uint16_t batteryAlarm;         /**< Low battery voltage (A/D count) */
-  uint16_t batteryhighAlarm;     /**< High battery voltage (A/D count) */
-  uint8_t TCelsius;             /**< Temperature in Celsius */
-  uint8_t maxTCelsius;          /**< maximum Temperature in Celsius */
-  uint16_t weldCount;           /**< Count of welds performed */
-  uint16_t pulseTime;           /**< Pulse time (ms) */
-  uint16_t maxPulseTime;        /**< Maximum allowed pulse time (ms) */
-  uint8_t shortPulseTime;       /**< Short pulse time (% of pulse time) */
-  uint16_t batteryOffset;         /**< Battery voltage calibration offset (signed) x10 */
-  uint16_t PulseBatteryVoltage; /**< Battery voltage during pulse x10 */
-  uint16_t PulseAmps;           /**< esimated Amps during pulse x10 */
+typedef struct progData {        // Структура робочих даних програми
+  uint8_t autoPulseDelay;        // Затримка автоімпульсу (мс/100)
+  uint16_t batteryAlarm;         // Низька напруга акумулятора (кількість A/D)
+  uint16_t batteryhighAlarm;     // Висока напруга акумулятора (кількість A/D)
+  uint8_t TCelsius;              // Температура в градусах Цельсія
+  uint8_t maxTCelsius;           // Максимальна температура в градусах Цельсія
+  uint16_t weldCount;            // Кількість виконаних зварних швів
+  uint16_t pulseTime;            // Час імпульсу (мс)
+  uint16_t maxPulseTime;         // Максимально допустимий час імпульсу (мс)
+  uint8_t shortPulseTime;        // Короткий час імпульсу (% від часу імпульсу)
+  uint16_t batteryOffset;        // Зміщення калібрування напруги акумулятора (з підписом) x10
+  uint16_t PulseBatteryVoltage;  // Напруга батареї під час імпульсу x10
+  uint16_t PulseAmps;            // Орієнтовна сила струму під час імпульсу x10
   uint16_t PulseShuntVoltage;
-  struct progFlags {            /**< Program logical flags */
-    unsigned en_autoPulse : 1;  /**< Auto-pulse enable */
-    unsigned en_Sound : 1;      /**< Weld Sound enable */
-    unsigned en_oledInvert : 1; /**< OLED orientation - true for inverted else normal */
-    unsigned unused : 6;        /**< Unused program flags */
+  struct progFlags {             // Програмування логічних прапорів
+    unsigned en_autoPulse : 1;   // Auto-pulse enable
+    unsigned en_Sound : 1;       // Weld Sound enable
+    unsigned en_oledInvert : 1;  // Орієнтація OLED - істинна для перевернутого, інакше нормальна
+    unsigned unused : 6;         // Невикористані прапори програми
   } pFlags;
 } progData;
 
 /***************************************************************************************************
-* Procedure prototypes                                                                             *
+* Прототипи процедур                                                                               *
 ***************************************************************************************************/
 
 void stateMachine();
@@ -182,12 +183,12 @@ void LowBattery_Sound();
 void isr();
 void splash();
 void sendWeldPulse(uint8_t, uint16_t, uint16_t, boolean = PL_ACTIVE_H);
-void message(const __FlashStringHelper*, const __FlashStringHelper*,
-             const __FlashStringHelper*, uint8_t = 0);
-void displayMenuType1(const __FlashStringHelper*, const __FlashStringHelper*,
-                      const __FlashStringHelper*, const __FlashStringHelper*,
+void message(const __FlashStringHelper *, const __FlashStringHelper *,
+             const __FlashStringHelper *, uint8_t = 0);
+void displayMenuType1(const __FlashStringHelper *, const __FlashStringHelper *,
+                      const __FlashStringHelper *, const __FlashStringHelper *,
                       uint8_t SelectedItem);
-void displayMenuType2(const __FlashStringHelper*, const char*, const __FlashStringHelper*);
+void displayMenuType2(const __FlashStringHelper *, const char *, const __FlashStringHelper *);
 void displayMainScreen();
 void displayPulseData();
 void displayLowBattery();
@@ -195,24 +196,24 @@ void displayHighBattery();
 void displayHighTemperature();
 void drawStatusLine();
 void setTextProp(uint8_t, uint8_t, uint8_t, uint16_t = WHITE, boolean = false);
-char* valStr(char*, uint16_t, vf_Type);
+char *valStr(char *, uint16_t, vf_Type);
 
 void enterMainScreen();
 void handleMainScreenCnt();
 void enterSystemScreen();
 void handleSystemMenu(char *str);
 void handleRebootMenu(char *str);
-void handleMenuItem(uint8_t menuIndex, uint16_t &setting, uint16_t minValue, uint16_t maxValue, const char* title, const char* unit);
+void handleMenuItem(uint8_t menuIndex, uint16_t &setting, uint16_t minValue, uint16_t maxValue, const char *title, const char *unit);
 void handleSubMenu2(char *str);
 
 /***************************************************************************************************
-* Language strings (very simple language implementation - English is the default)                  *
+* Мовні рядки (дуже проста мовна реалізація - англійська за замовчуванням)                         *
 ***************************************************************************************************/
 
-// Copy the language strings from the else clause into your language specific clause, then alter
-// the strings to suit your language. Define your language at the top of this header file. It is
-// important to maintain the correct formatting of the strings. Each string has an inline comment
-// defining its format.
+// Скопіюйте мовні рядки з else у відповідний пункт, а потім змініть їх відповідно до вашої мови. 
+// Визначте вашу мову у верхній частині цього заголовного файлу. 
+// Важливо підтримувати правильне форматування рядків. Кожен рядок має вбудований коментар, 
+// який визначає його формат.
 
 // Comment legend: field width          21 для дрібного шрифту, 10 для великого шрифту
 //                 justification        left, centre, right
