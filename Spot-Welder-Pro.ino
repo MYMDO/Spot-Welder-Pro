@@ -743,15 +743,10 @@ void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease
 
   // Розрахунок імпульсного струму в Амперах:
   pData.PulseBatteryVoltage = (float)(busVoltageDuring);
-  pData.PulseAmps = map(PulseGauss, NominalGauss, 1023, 0, (1023 - NominalGauss) * 10);  
-  // map(PulseGauss, NominalGauss, 900, 0, 3880); // 10A одна поділка = 5mV (900 - 512 = 388 * 10) // 3880/(900-512)=10A при 5mV.
-  // Використовується функція map() для перетворення значення PulseGauss (показник датчика під час імпульсу) у значення струму.
-  // NominalGauss - це опорне "нульове" значення датчика (зчитане перед імпульсом), що використовується для калібрування.
-  // Діапазон вхідних значень для map(): від NominalGauss до 1023 (максимальне значення analogRead()).
-  // Діапазон вихідних значень для map(): від 0 Ампер до (1023 - NominalGauss) * 10 Ампер.
-  // Вважається, що кожна "поділка" різниці між PulseGauss та NominalGauss приблизно відповідає 10 Амперам.
-  // Формула (1023 - NominalGauss) * 10 визначає максимальний можливий виміряний струм,
-  // масштабуючи різницю до максимального значення analogRead() (1023) з коефіцієнтом 10 Ампер на поділку.
+  pData.PulseAmps = map(PulseGauss, NominalGauss, 1023, 0, (1023 - NominalGauss) * 10);
+  // pData.PulseAmps = map(PulseGauss, NominalGauss, 900, 0, 3880);
+  // 10A 1-поділка з A0 = 5mV (900 - 512 = 388 * 10) // 3880/(900-512)=10A при 5mV з SS49E.
+  // PulseAmps: Струм імпульсу (А), датчик SS49E (A0), ~10А/поділка, калибровка нуля по NominalGauss.
 
   unsigned long startMillis = millis();
 
