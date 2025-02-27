@@ -744,7 +744,7 @@ void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease
   // Розрахунок імпульсного струму в Амперах:
   pData.PulseBatteryVoltage = (float)(busVoltageDuring);
   pData.PulseAmps = map(PulseGauss, NominalGauss, 1023, 0, (1023 - NominalGauss) * 10);  
-  // , 900, 0, 3880); // 10A одна поділка = 5mV (900 - 512 = 388 * 10) // 3880/(900-512)=10A при 5mV.
+  // map(PulseGauss, NominalGauss, 900, 0, 3880); // 10A одна поділка = 5mV (900 - 512 = 388 * 10) // 3880/(900-512)=10A при 5mV.
   // Використовується функція map() для перетворення значення PulseGauss (показник датчика під час імпульсу) у значення струму.
   // NominalGauss - це опорне "нульове" значення датчика (зчитане перед імпульсом), що використовується для калібрування.
   // Діапазон вхідних значень для map(): від NominalGauss до 1023 (максимальне значення analogRead()).
