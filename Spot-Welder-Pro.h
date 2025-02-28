@@ -72,7 +72,7 @@
 
 // Макроси синхронізації
 #define STANDBY_TIME_OUT 640000L  // Тайм-аут сплячого режиму пристрою (мс)  // 6400000L
-#define EEPROM_UPDATE_T 60000     // Час оновлення EEPROM (мс)
+#define EEPROM_UPDATE_T 30000     // Час оновлення EEPROM (мс) // 60000 = 60 секунд
 #define WP_RETRIGGER_DELAY 50     // Затримка повторного запуску зварювального імпульсу (мс /10)
 #define FS_TRIGGER_DELAY 200      // Затримка активації ножного перемикача (мс)
 #define RS_DEBOUNCE 20 /*20*/     // Час відскоку поворотного енкодера та перемикача (мс)
@@ -99,8 +99,10 @@
 // EEPROM macros
 #define EEA_ID 0                // Адреса унікального ідентифікатора
 #define EEA_PDATA (EEA_ID + 4)  // EEPROM-адреса програмних даних
+#define EEA_CHECKSUM (EEA_PDATA + sizeof(progData)) // Адреса для хеш-суми, розміщуємо після структури progData
 #define EE_UNIQUEID 0x18fae9c8  // Унікальний ідентифікатор верифікації EEPROM
 #define EE_FULL_RESET true      // Параметр скидання для скидання всіх параметрів EEPROM
+#define EE_CHECKSUM_SIZE sizeof(uint16_t) // Розмір хеш-суми (uint16_t - 2 байти)
 
 // Маскування макросів під функції - робить код більш читабельним
 // Цей макрос зчитує стан кнопкового перемикача на енкодері.

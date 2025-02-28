@@ -161,7 +161,7 @@ void setup() {
 
   Wire.begin();  // Запускаємо I2C, якщо ще не запущено
   if (!INA.begin()) {
-    Serial.println("INA226 initialization failed!");
+    Serial.println("Ініціалізація INA226 завершилася невдало!");
     while (1)
       ;  // Зупинка, якщо ініціалізація не вдалася
   }
@@ -580,6 +580,8 @@ void handleRebootMenu(char *str) {
     message(FPSTR(LS_REBOOT), menuState.selectedMenu == 1 ? FPSTR(LS_REBOOTSR) : menuState.selectedMenu == 2 ? FPSTR(LS_REBOOTFR)
                                                                                                              : FPSTR(LS_REBOOTNR),
             FPSTR(LS_WAITMSG), 2);
+
+    // updateEEPROM();
     delay(1000);
     reboot();
 
@@ -698,7 +700,7 @@ void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease
   unsigned long shortPulseDelay = max(1UL, (pData.pulseTime * pData.shortPulseTime) / 100);
 
 #ifdef _DEVELOPMENT_
-  Serial.println(F("Auto-Pulse Activated"));
+  Serial.println(F("Авто-імпульс активовано!"));
 #endif
 
   // Затримка активації
@@ -1197,7 +1199,7 @@ char *valStr(char *str, uint16_t val, vf_Type fType) {
 }
 
 /***************************************************************************************************
-* Утиліта EEPROM функцій                                                                           *
+* Утиліти EEPROM функцій                                                                           *
 ***************************************************************************************************/
 /**
  *  \brief                    Скиньте EEPROM і програмні дані до заводських налаштувань за замовчуванням.
@@ -1228,7 +1230,13 @@ void resetEEPROM(boolean full) {
 
   // Функція put не записує нові дані, якщо таким чином існуючі дані збігаються
   // обмеження зносу EEPROM.
-  EEPROM.put(EEA_PDATA, pData);
+  EEPROM.put(EEA_PDATA, pData);  // EEPROM.put(EEA_PDATA, pData);
+
+  // 1. Обчисліть хеш-суму для заводських даних
+  uint16_t checksum = calculateChecksum(pData);
+
+  // 2. Запишіть обчислену хеш-суму в EEPROM
+  EEPROM.put(EEA_CHECKSUM, checksum);
 
   // Унікальний ідентифікатор — це простий спосіб переконатися, що в EEPROM існує дійсний набір даних
   // (є набагато кращі методи, але ми не маємо вільного місця для коду).
@@ -1236,8 +1244,8 @@ void resetEEPROM(boolean full) {
 
 #if defined _DEVELOPMENT_ || defined _BOOTSYS_
 
-  if (full) Serial.println(F("EEPROM Full Reset"));
-  else Serial.println(F("EEPROM Reset"));
+  if (full) Serial.println(F("Повне скидання EEPROM з контрольною сумою"));
+  else Serial.println(F("Скидання EEPROM з контрольною сумою"));
 
 #endif /* _DEVELOPMENT_ || _BOOTSYS_*/
 }
@@ -1265,31 +1273,87 @@ void logPulseInfo() {
 }
 
 void loadEEPROM() {
-  // Перевірте цілісність EEPROM, зчитавши магічне число.
-  // Якщо воно пошкоджене, то відбувається повне скидання до заводських налаштувань,
-  // інакше з EEPROM завантажуються програмні дані.
+  // Перевірте цілісність EEPROM за допомогою хеш-суми.
+  uint16_t storedChecksum;
+  uint16_t calculatedChecksum;
   uint32_t uniqueID;
+
+  // 1. Зчитайте збережену хеш-суму з EEPROM
+  EEPROM.get(EEA_CHECKSUM, storedChecksum);
+
+  // 2. Зчитайте структуру даних програми з EEPROM
+  EEPROM.get(EEA_PDATA, pData);
 
   EEPROM.get(EEA_ID, uniqueID);
 
-  if (uniqueID != EE_UNIQUEID)
-    resetEEPROM(EE_FULL_RESET);
-  else
+  // 3. Обчисліть хеш-суму для щойно зчитаних даних
+  calculatedChecksum = calculateChecksum(pData);
+
+  // 4. Порівняйте обчислену хеш-суму зі збереженою та магічне число.
+  if (calculatedChecksum != storedChecksum || uniqueID != EE_UNIQUEID) {
+#ifdef _DEVELOPMENT_
+    Serial.print(F("EEPROM Оновлено! Хеш-сума змінилась (HEX) | 0x"));
+    Serial.print(storedChecksum, HEX);  // Вивід в шістнадцятковому форматі з префіксом "0x"
+    Serial.print(F(" >>> 0x"));
+    Serial.println(calculatedChecksum, HEX);
+#endif
+    // Хеш-суми не збігаються, EEPROM дані пошкоджені або недійсні
+    Serial.println(F("EEPROM Error!  Відновлення EEPROM >>>"));
+    resetEEPROM(EE_FULL_RESET);  // Скидання до заводських налаштувань
+  } else {
     EEPROM.get(EEA_PDATA, pData);
+// Хеш-суми збігаються, дані EEPROM, ймовірно, цілісні
+#ifdef _DEVELOPMENT_
+    Serial.print(F("EEPROM OK!       Хеш-сума (HEX) = 0x"));
+    Serial.println(calculatedChecksum, HEX);  // Вивід в шістнадцятковому форматі з префіксом "0x"
+#endif
+  }
 }
+
 // Оновлюємо дані EEPROM локальною структурою даних програми.
 void updateEEPROM() {
   static unsigned long lastEEUpdatetime = 0;
+  uint16_t storedChecksum;
 
   // Не робіть це занадто часто, щоб запобігти передчасному зносу EEPROM.
   if (millis() - lastEEUpdatetime > EEPROM_UPDATE_T) {
     lastEEUpdatetime = millis();
 
-    // Запис поточних даних програми в EEPROM.
-    EEPROM.put(EEA_PDATA, pData);
+    // 1. Обчисліть хеш-суму для поточних даних програми
+    EEPROM.get(EEA_CHECKSUM, storedChecksum);
+    uint16_t calculatedChecksum = calculateChecksum(pData);
+    if (calculatedChecksum != storedChecksum) {
+
+      // 2. Запишіть поточні дані програми в EEPROM
+      EEPROM.put(EEA_PDATA, pData);  // EEPROM.put(EEA_PDATA, pData);
+
+      // 3. Запишіть обчислену хеш-суму в EEPROM
+      EEPROM.put(EEA_CHECKSUM, calculatedChecksum);  // EEPROM.put(EEA_CHECKSUM, checksum);
 
 #ifdef _DEVELOPMENT_
-    Serial.println(F("Updated EEPROM"));
-#endif /* _DEVELOPMENT_ */
+      Serial.print(F("EEPROM Оновлено! Хеш-сума змінилась (HEX) | 0x"));
+      Serial.print(storedChecksum, HEX);  // Вивід в шістнадцятковому форматі з префіксом "0x"
+      Serial.print(F(" >>> 0x"));
+      Serial.println(calculatedChecksum, HEX);
+#endif
+
+    } else {
+#ifdef _DEVELOPMENT_
+      Serial.print(F("EEPROM OK!       Хеш-сума не змінилась (HEX) = 0x"));
+      Serial.println(calculatedChecksum, HEX);  // Вивід в шістнадцятковому форматі з префіксом "0x"
+#endif                                          /* _DEVELOPMENT_ */
+    }
   }
+}
+
+// Функція для обчислення простої хеш-суми структури progData
+uint16_t calculateChecksum(const progData &data) {
+  uint16_t checksum = 0;
+  const byte *dataPtr = reinterpret_cast<const byte *>(&data);
+  size_t dataSize = sizeof(progData);
+
+  for (size_t i = 0; i < dataSize; ++i) {
+    checksum += dataPtr[i];  // Проста адитивна хеш-сума
+  }
+  return checksum;
 }
