@@ -569,7 +569,7 @@ void handleSystemMenu(char *str) {
   }
 }
 
-void handleRebootMenu(char *str) {
+void handleRebootMenu(char */*str*/) {
   if (mEvent == EV_BTNDN) menuState.btn = true;
   else if ((mEvent == EV_BTNUP) && menuState.btn) {
     if (menuState.selectedMenu == 1)
@@ -1049,7 +1049,7 @@ void drawValueWithUnits(uint8_t size, int16_t x, int16_t y, const char *value, c
 }
 
 // Відобразити на РК-дисплеї повідомлення НИЗЬКИЙ РІВЕНЬ напруги АККУМУЛЯТОРА.
-void displayBatteryStatus(const __FlashStringHelper *statusText, const char *value) {
+void displayBatteryStatus(const __FlashStringHelper *statusText, const char */*value*/) {
   char str[5];
 
   display.clearDisplay();
@@ -1176,7 +1176,7 @@ void foot_switch_error() {
  *  \param [in] char *str     Вказівник на рядок для отримання відформатованого результату.
  *  \param [in] uint16_t val  Ціле значення, яке потрібно відформатувати.
  *  \param [in] vf_Type fType Тип змінної для форматування.
- *  \return     char*         Вказівник на відформатований рядок.
+ *  \return     char *        Вказівник на відформатований рядок.
  */
 char *valStr(char *str, uint16_t val, vf_Type fType) {
 
