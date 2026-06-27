@@ -29,7 +29,7 @@
 * Визначення виводів та переривань                                                                 *
 ***************************************************************************************************/
 
-#define ENC_uint16_t 0     // Поворотне переривання для входу CLK (Ph0)
+#define ENC_INT_NUM  0     // Номер переривання для входу CLK енкодера (INT0)
 #define PIN_CLK 2          // Вхід CLK датчика повороту (Ph0)
 #define PIN_DT 8           // Поворотний енкодер DT вхід (Ph1)
 #define PIN_SW 6           // Поворотний енкодер кнопковий перемикач вхід
@@ -38,7 +38,6 @@
 #define PIN_PULSE 5        // Вихід зварювального імпульсу
 #define PIN_BUZZ A1        // Вихід звукового сигналу
 #define PIN_TEMP A3        // Вхідний сигнал температури
-
 /***************************************************************************************************
 * Макроси                                                                                          *
 ***************************************************************************************************/
@@ -48,17 +47,24 @@
 #define DEF_SHUNT_VOLTAGE 0
 #define DEF_MAX_PULSE_TIME 100    // За замовчуванням максимальний час імпульсу (мс)
 #define DEF_SPULSE_TIME 0         // Час короткого імпульсу за замовчуванням (% від часу імпульсу)
-#define DEF_NOM_BATT_V 5400       // Номінальна напруга акумулятора за замовчуванням (для тестування)
-#define DEF_MAX_BATT_V 5400       // Максимальна напруга батареї за замовчуванням (В*1000)
-#define DEF_PULSE_VOLTAGE 4000    // Напруга за замовчуванням під час імпульсу (для тестування) (В*1000)
+#define NOMINAL_VOLTAGE_FOR_COMPENSATION 8500 // Еталонна напруга для компенсації в мВ
+#define DEF_NOM_BATT_V 8000       // Номінальна напруга акумулятора за замовчуванням (для тестування)
+#define DEF_MAX_BATT_V 9000       // Максимальна напруга батареї за замовчуванням (В*1000)
+#define DEF_PULSE_VOLTAGE 5000    // Напруга за замовчуванням під час імпульсу (для тестування) (В*1000)
 #define DEF_PULSE_AMPS 5000       // За замовчуванням Ампер під час імпульсу (для тестування) (А*1000)
 #define DEF_BATTERY_OFFSET 0      // Зміщення калібрування батареї за замовчуванням (V*1000)
-#define DEF_BATT_ALARM 3500       // За замовчуванням низька напруга батареї (В*1000)
-#define DEF_HIGH_BATT_ALARM 5500  // За замовчуванням висока напруга акумулятора (В*1000)
+#define DEF_BATT_ALARM 7500       // За замовчуванням низька напруга батареї (В*1000)
+#define DEF_HIGH_BATT_ALARM 15000  // За замовчуванням висока напруга акумулятора (В*1000)
 #define DEF_HIGH_TEMP_ALARM 65    // Висока температура за замовчуванням | Off in >>> if (TCelsius > DEF_HIGH_TEMP_ALARM) mEvent = EV_NONE;  // EV_TEMP_HIGH;
 #define DEF_AUTO_PULSE true       // За замовчуванням Увімкнення автоімпульсу
 #define DEF_WELD_SOUND true       // За замовчуванням звук зварювання ввімкнено
 #define DEF_OLED_INVERT false     // Орієнтація OLED за замовчуванням
+
+// Конфігурація модуля INA226 та датчиків
+#define INA_MAX_CURRENT_A 8
+#define INA_SHUNT_RESISTANCE_OHM 0.01
+#define INA_AVERAGING_MODE 4
+#define ADC_SETTLE_DELAY_MS 9
 
 // Обмеження для операційних змінних
 #define MIN_PULSE_TIME 1      // Мінімальний час зварювального імпульсу
@@ -67,7 +73,7 @@
 #define MIN_APULSE_DELAY 5    // Мінімальна затримка автоматичного імпульсу
 #define MAX_SPULSE_TIME 100   // Максимальний час короткого імпульсу
 #define MIN_SPULSE_TIME 0     // Мінімальний час короткого імпульсу
-#define MAX_BATT_ALARM 5400   // Максимальна тривожна напруга низького рівня заряду акумулятора
+#define MAX_BATT_ALARM 15000  // Максимальна тривожна напруга високого рівня заряду акумулятора
 #define MIN_BATT_BALARM 3500  // Мінімальна напруга тривоги низького рівня заряду акумулятора
 
 // Макроси синхронізації
@@ -78,8 +84,7 @@
 #define RS_DEBOUNCE 20 /*20*/     // Час відскоку поворотного енкодера та перемикача (мс)
 #define BV_INTERVAL 2000          // Інтервал вимірювання напруги акумулятора (мс)
 #define T_INTERVAL 10000          // Інтервал вимірювання температури (мс)
-#define PV_DELAY 1000             // Час, протягом якого потрібно утримувати ножний перемикач,
-// перш ніж дані про імпульс з'являться на екрані після імпульсу (мс)
+
 
 // Макет екрана дисплея
 #define CHR_W 6             // Ширина символу [size=1] (пікселів)
@@ -152,7 +157,7 @@ typedef struct progData {        // Структура робочих даних
   uint16_t pulseTime;            // Час імпульсу (мс)
   uint16_t maxPulseTime;         // Максимально допустимий час імпульсу (мс)
   uint8_t shortPulseTime;        // Короткий час імпульсу (% від часу імпульсу)
-  uint16_t batteryOffset;        // Зміщення калібрування напруги акумулятора (з підписом) x10
+  uint16_t nominalVoltage;       // Номінальна напруга компенсації (В*10, напр. 55 = 5.5В)
   uint16_t PulseBatteryVoltage;  // Напруга батареї під час імпульсу x10
   uint16_t PulseAmps;            // Орієнтовна сила струму під час імпульсу x10
   uint16_t PulseShuntVoltage;
@@ -160,7 +165,7 @@ typedef struct progData {        // Структура робочих даних
     unsigned en_autoPulse : 1;   // Auto-pulse enable
     unsigned en_Sound : 1;       // Weld Sound enable
     unsigned en_oledInvert : 1;  // Орієнтація OLED - істинна для перевернутого, інакше нормальна
-    unsigned unused : 6;         // Невикористані прапори програми
+    unsigned unused : 5;         // Невикористані прапори програми
   } pFlags;
 } progData;
 
@@ -170,21 +175,20 @@ typedef struct progData {        // Структура робочих даних
 
 void stateMachine();
 
-void resetEeprom(boolean = false);
-void loadEeprom();
-void updateEeprom();
+void resetEEPROM(bool = false);
+void loadEEPROM();
+void updateEEPROM();
 
 void checkForLowVoltageEvent();
 void checkForSleepEvent();
 void checkForBtnEvent();
 void checkTemp();
+uint8_t readTemperatureCelsius(int adc);
 void foot_switch_error();
-void FootSwitch_Alarm();
 void Boot_Sound();
-void LowBattery_Sound();
 void isr();
 void splash();
-void sendWeldPulse(uint8_t, uint16_t, uint16_t, boolean = PL_ACTIVE_H);
+void sendWeldPulse(uint8_t, uint16_t, uint16_t, bool = PL_ACTIVE_H);
 void message(const __FlashStringHelper *, const __FlashStringHelper *,
              const __FlashStringHelper *, uint8_t = 0);
 void displayMenuType1(const __FlashStringHelper *, const __FlashStringHelper *,
@@ -192,12 +196,14 @@ void displayMenuType1(const __FlashStringHelper *, const __FlashStringHelper *,
                       uint8_t SelectedItem);
 void displayMenuType2(const __FlashStringHelper *, const char *, const __FlashStringHelper *);
 void displayMainScreen();
-void displayPulseData();
+// void displayPulseData();  // Видалено — не реалізована
 void displayLowBattery();
-void displayHighBattery();
+// void displayHighBattery();
 void displayHighTemperature();
+void displayHighVoltageWarning();
+void displayLowVoltageWarning();
 void drawStatusLine();
-void setTextProp(uint8_t, uint8_t, uint8_t, uint16_t = WHITE, boolean = false);
+void setTextProp(uint8_t, uint8_t, uint8_t, uint16_t = WHITE, bool = false);
 char *valStr(char *, uint16_t, vf_Type);
 
 void enterMainScreen();
@@ -205,7 +211,6 @@ void handleMainScreenCnt();
 void enterSystemScreen();
 void handleSystemMenu(char *str);
 void handleRebootMenu(char *str);
-void handleMenuItem(uint8_t menuIndex, uint16_t &setting, uint16_t minValue, uint16_t maxValue, const char *title, const char *unit);
 void handleSubMenu2(char *str);
 
 /***************************************************************************************************
@@ -247,9 +252,13 @@ static const char LS_CLICKBTN[] PROGMEM = " Please Click Button";  // 21 char, l
 static const char LS_EXITSTBY[] PROGMEM = "   to Exit Standby";    // 21 char, left
 
 static const char LS_BATTALM[] PROGMEM = "Low Battery Alarm";  // 21 char, left
+static const char LS_LOWALRM[] PROGMEM = " Low Alarm";
+static const char LS_HIGHALRM[] PROGMEM = "High Alarm";
+static const char LS_LOWALRMMENU[] PROGMEM = "Low Voltage Alarm";
+static const char LS_HIGHALRMMENU[] PROGMEM = "High Voltage Alarm";
 static const char LS_BATTERY[] PROGMEM = "BATTERY";            // 10 char, left
-static const char LS_LOWV[] PROGMEM = "LOW VOLTS";             // 10 char, left
-static const char LS_HIGHV[] PROGMEM = "HIGH VOLTS";           // 10 char, left
+static const char LS_LOWV[] PROGMEM = "BATT LOW"; // VOLTS";             // 10 char, left
+static const char LS_HIGHV[] PROGMEM = "BATT HIGH"; // VOLTS";           // 10 char, left
 static const char LS_PULSE[] PROGMEM = "Pulse:";               // 21 char, left
 
 static const char LS_TEMPALM[] PROGMEM = "Temperature Alarm";  // 21 char, left
@@ -313,6 +322,9 @@ static const char LS_MAXPLSMENU[] PROGMEM = "Set Max Weld Pulse";  // 21 char, l
 static const char LS_BATCALMENU[] PROGMEM = "Calibrate Battery";  // 21 char, left
 static const char LS_BATCALMSG[] PROGMEM = "Set Measured Volts";  // 21 char, left
 static const char LS_MSGHDR[] PROGMEM = "System Message";         // 21 char, left
+
+static const char LS_NOMVOLT[] PROGMEM = "  Vnom    ";              // 10 char, centre, padded
+static const char LS_NOMVOLTMENU[] PROGMEM = "Nominal Voltage";     // 21 char, left
 
 #endif
 
