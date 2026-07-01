@@ -11,6 +11,7 @@ struct MenuState {
 };
 
 MenuState menuState;  // Глобальна змінна для стану меню
+bool autoPulseTriggered = false; // Захист від помилкового авто-імпульсу
 
 void stateMachine() {
   char str[8];
@@ -68,8 +69,17 @@ void handleStandbyState() {
 }
 
 void handleTempHighState() {
-  if (atomicReadEvent() == EV_BTNDN) mState = sysMenu ? ST_SYSTEM_SCREEN : ST_MAIN_SCREEN;
-  displayHighTemperature();
+  if (atomicReadEvent() == EV_BTNDN) {
+    if (ntcError) {
+      ntcBypassed = true;
+    }
+    mState = sysMenu ? ST_SYSTEM_SCREEN : ST_MAIN_SCREEN;
+  }
+  if (ntcError) {
+    displayNtcError();
+  } else {
+    displayHighTemperature();
+  }
   atomicSetEvent(EV_NONE);
 }
 
@@ -77,15 +87,25 @@ void enterMainScreen() {
   mState = ST_MAIN_SCREEN_CNT;
   sysMenu = false;
   menuState.selectedMenu = 0;
+  autoPulseTriggered = digitalRead(PIN_AUTO_PULSE) ? true : false;
   displayMainScreen();
 }
 
 void handleMainScreenCnt() {
-  static bool autoPulseTriggered = false;
-
-  if (lowVoltageAlarmActive) {
+  if ((lowVoltageAlarmActive && !lowVoltageBypassed) || (highVoltageAlarmActive && !highVoltageBypassed) || ina226Error) {
     autoPulseTriggered = false;
     displayMainScreen();
+
+    uint8_t ev = atomicReadEvent();
+    if (ev == EV_BTNDN) {
+      if (lowVoltageAlarmActive && !lowVoltageBypassed) {
+        lowVoltageBypassed = true;
+      } else if (highVoltageAlarmActive && !highVoltageBypassed) {
+        highVoltageBypassed = true;
+      }
+      atomicSetEvent(EV_NONE);
+      displayMainScreen();
+    }
     return;
   }
 
@@ -100,7 +120,18 @@ void handleMainScreenCnt() {
       displayMainScreen();
     }
   } else if (!digitalRead(PIN_FOOT_SWITCH)) {
-    sendWeldPulse(PIN_FOOT_SWITCH, FS_TRIGGER_DELAY, WP_RETRIGGER_DELAY, PL_ACTIVE_L);
+    if (digitalRead(PIN_AUTO_PULSE)) {
+      sendWeldPulse(PIN_FOOT_SWITCH, FS_TRIGGER_DELAY, WP_RETRIGGER_DELAY, PL_ACTIVE_L);
+    } else {
+      displayNoContactWarning();
+      if (pData.pFlags.en_Sound) {
+        playBeep(300, 200); // Low warning tone
+      }
+      while (!digitalRead(PIN_FOOT_SWITCH)) {
+        wdt_reset();
+      }
+      displayMainScreen();
+    }
   } else {
     autoPulseTriggered = false;
   }
@@ -170,7 +201,7 @@ void handleSubMenu1(char *str) {
       else if (menuState.selectedSubMenu == 1) displayMenuType2(FPSTR(LS_AUTOPLSDLY),
                                                                 valStr(str, pData.autoPulseDelay, VF_DELAY), FPSTR(LS_SECONDS));
       else if (menuState.selectedSubMenu == 2) displayMenuType2(FPSTR(LS_WELDSOUNDM), NULL,
-                                                                pData.pFlags.en_autoPulse ? FPSTR(LS_SOUNDON) : FPSTR(LS_SOUNDOFF));
+                                                                pData.pFlags.en_Sound ? FPSTR(LS_SOUNDON) : FPSTR(LS_SOUNDOFF));
       else if (menuState.selectedSubMenu == 3) displayMenuType2(FPSTR(LS_NOMVOLTMENU),
                                                                 valStr(str, pData.nominalVoltage, VF_BATTALM), FPSTR(LS_VOLTAGE));
 
@@ -186,10 +217,14 @@ void handleSubMenu1(char *str) {
                            valStr(str, pData.batteryhighAlarm, VF_BATTALM), FPSTR(LS_VOLTAGE));
         }
       } else {
+        updateEEPROM(true);
         mState = ST_MAIN_SCREEN;
       }
 
-    } else mState = ST_MAIN_SCREEN;
+    } else {
+      updateEEPROM(true);
+      mState = ST_MAIN_SCREEN;
+    }
 
     atomicSetEvent(EV_NONE);
     menuState.selectedMenu = 0;
@@ -228,6 +263,7 @@ void handleSubMenu1(char *str) {
 void handleSubMenu2(char *str) {
   uint8_t ev = atomicReadEvent();
   if (ev == EV_BTNDN) {
+    updateEEPROM(true);
     mState = ST_MAIN_SCREEN;
     atomicSetEvent(EV_NONE);
     menuState.selectedMenu = 0;
@@ -350,6 +386,7 @@ void handleRebootMenu(char */*str*/) {
 void handleMaxWeldScreen(char *str) {
   uint8_t ev = atomicReadEvent();
   if (ev == EV_BTNDN) {
+    updateEEPROM(true);
     message(FPSTR(LS_MAXPULSE), FPSTR(LS_MAXPMSG), FPSTR(LS_WAITMSG), 2);
     mState = ST_SYSTEM_SCREEN;
     menuState.selectedMenu = 0;
@@ -369,6 +406,7 @@ void handleMaxWeldScreen(char *str) {
 void handleInvertScreen() {
   uint8_t ev = atomicReadEvent();
   if (ev == EV_BTNDN) {
+    updateEEPROM(true);
     mState = ST_SYSTEM_SCREEN;
     atomicSetEvent(EV_NONE);
     menuState.selectedMenu = 0;
@@ -489,20 +527,42 @@ void sendWeldPulse(uint8_t sensePin, uint16_t delayEngage, uint16_t delayRelease
   delay(ADC_SETTLE_DELAY_MS);
   wdt_reset();
 
+  uint16_t busVoltageBefore = INA.getBusVoltage_mV(); // Зчитуємо напругу спокою безпосередньо перед імпульсом
+  INA.setAverage(0); // Встановлюємо 1 замір (без усереднення), щоб миттєво зафіксувати просідання напруги
+
   uint32_t pulseStart_us = micros();
   uint32_t pulseDuration_us = (uint32_t)compensatedPulseTime * 1000UL;
+  uint32_t halfPulseDuration_us = pulseDuration_us / 2;
 
   weldPulse(Pulse_ON);
+  while ((micros() - pulseStart_us) < halfPulseDuration_us) { }
+  ADCSRA |= (1 << ADSC); // Асинхронно запускаємо АЦП зчитування струму A0
   while ((micros() - pulseStart_us) < pulseDuration_us) { }
   weldPulse(Pulse_OFF);
 
   wdt_reset();
 
-  uint16_t PulseGauss = analogRead(A0);
+  while (ADCSRA & (1 << ADSC)) { } // Очікуємо закінчення фонового перетворення АЦП
+  uint16_t PulseGauss = ADC;
   uint16_t busVoltageDuring = INA.getBusVoltage_mV();
+  INA.setAverage(INA_AVERAGING_MODE); // Повертаємо стандартне усереднення (128 замірів)
 
   pData.PulseBatteryVoltage = busVoltageDuring;
   pData.PulseAmps = (PulseGauss > NominalGauss) ? (PulseGauss - NominalGauss) * 10 : 0;
+
+  // Розраховуємо опір контуру в мОм (x10, тобто 20 = 2.0 мОм)
+  if (pData.PulseAmps > 0 && busVoltageBefore > busVoltageDuring) {
+    pData.PulseResistance = (uint32_t)100 * (busVoltageBefore - busVoltageDuring) / pData.PulseAmps;
+  } else {
+    pData.PulseResistance = 0;
+  }
+
+#ifdef _DEVELOPMENT_
+  Serial.print(F("V_before: ")); Serial.print(busVoltageBefore);
+  Serial.print(F(" mV, V_during: ")); Serial.print(busVoltageDuring);
+  Serial.print(F(" mV, Amps: ")); Serial.print(pData.PulseAmps);
+  Serial.print(F(", R: ")); Serial.print(pData.PulseResistance / 10); Serial.print('.'); Serial.print(pData.PulseResistance % 10); Serial.println(F(" mR"));
+#endif
 
   // Очікування деактивації датчика (відпускання кнопки/педалі)
   while (digitalRead(sensePin) == activePinState) {
@@ -528,24 +588,34 @@ void checkForLowVoltageEvent() {
     batteryVoltage = DEF_NOM_BATT_V;
 #endif
 
-    uint16_t highAlarmVoltage_mV = (uint16_t)pData.batteryhighAlarm * 100;
-    if (batteryVoltage > highAlarmVoltage_mV) {
-      if (!highVoltageAlarmActive) {
-        highVoltageAlarmActive = true;
-        if (pData.pFlags.en_Sound) playHighVoltageAlarmSound();
-      }
-    } else {
+    if (batteryVoltage == 0) {
+      ina226Error = true;
       highVoltageAlarmActive = false;
-    }
-
-    uint16_t alarmVoltage_mV = (uint16_t)pData.batteryAlarm * 100;
-    if (batteryVoltage < alarmVoltage_mV) {
-      if (!lowVoltageAlarmActive) {
-        lowVoltageAlarmActive = true;
-        if (pData.pFlags.en_Sound) playLowVoltageAlarmSound();
-      }
-    } else {
       lowVoltageAlarmActive = false;
+    } else {
+      ina226Error = false;
+
+      uint16_t highAlarmVoltage_mV = (uint16_t)pData.batteryhighAlarm * 100;
+      if (batteryVoltage > highAlarmVoltage_mV) {
+        if (!highVoltageAlarmActive) {
+          highVoltageAlarmActive = true;
+          if (pData.pFlags.en_Sound) playHighVoltageAlarmSound();
+        }
+      } else {
+        highVoltageAlarmActive = false;
+        highVoltageBypassed = false;
+      }
+
+      uint16_t alarmVoltage_mV = (uint16_t)pData.batteryAlarm * 100;
+      if (batteryVoltage < alarmVoltage_mV) {
+        if (!lowVoltageAlarmActive) {
+          lowVoltageAlarmActive = true;
+          if (pData.pFlags.en_Sound) playLowVoltageAlarmSound();
+        }
+      } else {
+        lowVoltageAlarmActive = false;
+        lowVoltageBypassed = false;
+      }
     }
   }
 }
@@ -573,8 +643,20 @@ void checkTemp() {
   if (millis() - lastTTime > T_INTERVAL) {
     lastTTime = millis();
     int bitwertNTC = analogRead(PIN_TEMP);
-    TCelsius = readTemperatureCelsius(bitwertNTC);
-    if (TCelsius > DEF_HIGH_TEMP_ALARM) atomicSetEvent(EV_TEMP_HIGH);
+    if (bitwertNTC > 900 || bitwertNTC < 15) {
+      ntcError = true;
+      TCelsius = 99;
+      if (!ntcBypassed) {
+        atomicSetEvent(EV_TEMP_HIGH);
+      }
+    } else {
+      ntcError = false;
+      ntcBypassed = false;
+      TCelsius = readTemperatureCelsius(bitwertNTC);
+      if (TCelsius > DEF_HIGH_TEMP_ALARM) {
+        atomicSetEvent(EV_TEMP_HIGH);
+      }
+    }
   }
 }
 

@@ -88,15 +88,20 @@ void displayMainScreen(bool signaled) {
   display.print(FPSTR(LS_MS));
 
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 20, valStr(str, pData.weldCount, VF_WELDCNT), FPSTR(LS_WELDS));
+  setTextProp(1, SSD1306_LCDWIDTH - CHR_W * 3, 32);
+  display.print(valStr(str, pData.PulseResistance, VF_DELAY));
+  drawText(1, SSD1306_LCDWIDTH - CHR_W * 2, 42, F("mR"));
 
   char pulseAmpsStr[8];
   drawText(1, 0, 56, FPSTR(LS_PULSE));
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 14, 56, valStr(pulseAmpsStr, pData.PulseAmps, VF_BATTA), FPSTR(LS_AUNITS));
   drawValueWithUnits(1, SSD1306_LCDWIDTH - CHR_W * 6, 56, valStr(str, pData.PulseBatteryVoltage / 10, VF_BATTV), FPSTR(LS_VUNITS));
 
-  if (highVoltageAlarmActive) {
+  if (ina226Error) {
+    displayInaError();
+  } else if (highVoltageAlarmActive && !highVoltageBypassed) {
     displayHighVoltageWarning();
-  } else if (lowVoltageAlarmActive) {
+  } else if (lowVoltageAlarmActive && !lowVoltageBypassed) {
     displayLowVoltageWarning();
   }
 
@@ -118,14 +123,32 @@ void drawValueWithUnits(uint8_t size, int16_t x, int16_t y, const char *value, c
   display.print(units);
 }
 
-void displayBatteryStatus(const __FlashStringHelper *statusText, const char */*value*/) {
-  char str[8];
+void displayInaError() {
+  display.fillRect(0, 15, SCREEN_WIDTH, 34, BLACK);
+  setTextProp(2, (SSD1306_LCDWIDTH - (12 * CHR_W * 2)) / 2, 20, WHITE);
+  display.print(F("SENSOR ERROR"));
+  setTextProp(1, (SSD1306_LCDWIDTH - (16 * CHR_W)) / 2, 38, WHITE);
+  display.print(F("Check INA226 I2C"));
+}
+
+void displayNoContactWarning() {
+  display.fillRect(0, 15, SCREEN_WIDTH, 34, BLACK);
+  setTextProp(2, (SSD1306_LCDWIDTH - (10 * CHR_W * 2)) / 2, 20, WHITE);
+  display.print(F("NO CONTACT"));
+  setTextProp(1, (SSD1306_LCDWIDTH - (16 * CHR_W)) / 2, 38, WHITE);
+  display.print(F("Press electrodes"));
+  display.display();
+}
+
+void displayNtcError() {
   display.clearDisplay();
   drawStatusLine();
-  drawText(2, (SSD1306_LCDWIDTH - (sizeof(LS_BATTERY) - 1) * CHR_W * 2) / 2, 16, FPSTR(LS_BATTERY));
-  uint8_t statusLen = strlen_P((PGM_P)statusText);
-  drawText(2, (SSD1306_LCDWIDTH - statusLen * CHR_W * 2) / 2, 16 + 2 * LINE_H, statusText);
-  drawValueWithUnits(1, (SSD1306_LCDWIDTH - 1 * CHR_W) / 2, 16 + 4 * LINE_H, valStr(str, batteryVoltage, VF_BATTV), FPSTR(LS_VUNITS));
+  setTextProp(2, (SSD1306_LCDWIDTH - (9 * CHR_W * 2)) / 2, 16, WHITE);
+  display.print(F("NTC ERROR"));
+  setTextProp(1, (SSD1306_LCDWIDTH - (17 * CHR_W)) / 2, 34, WHITE);
+  display.print(F("Sensor open/short"));
+  setTextProp(1, (SSD1306_LCDWIDTH - (18 * CHR_W)) / 2, 48, WHITE);
+  display.print(F("Press SW to bypass"));
   display.display();
 }
 
@@ -141,10 +164,7 @@ void displayTemperatureStatus(const __FlashStringHelper *statusText, const __Fla
   display.display();
 }
 
-void displayLowBattery() {
-  char str[16];
-  displayBatteryStatus(FPSTR(LS_LOWV), valStr(str, batteryVoltage, VF_BATTV));
-}
+// Removed displayLowBattery()
 
 void displayHighTemperature() {
   displayTemperatureStatus(FPSTR(LS_HIGHT), FPSTR(LS_COOL));

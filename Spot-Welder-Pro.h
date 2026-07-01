@@ -21,7 +21,6 @@
 #define _DEVELOPMENT_  // Дозволяє друкувати діагностику
 // #define _BOOTSYS_  // Примусове завантаження в системне меню для тестування
 
-#define _LANG_EN_  // Language:  _LANG_EN/DE/FR/ES/IT_
 // #define _TESTING_  // Дозволяє ігнорувати тривогу про низький заряд батареї
 #define _SERIAL_BAUD_ 115200  // Швидкість зв'язку для послідовного налагодження
 
@@ -58,6 +57,12 @@
 #define DEF_HIGH_TEMP_ALARM 65    // Висока температура за замовчуванням | Off in >>> if (TCelsius > DEF_HIGH_TEMP_ALARM) mEvent = EV_NONE;  // EV_TEMP_HIGH;
 #define DEF_AUTO_PULSE true       // За замовчуванням Увімкнення автоімпульсу
 #define DEF_WELD_SOUND true       // За замовчуванням звук зварювання ввімкнено
+extern bool autoPulseTriggered;
+extern bool ina226Error;
+extern bool ntcError;
+extern bool ntcBypassed;
+extern bool lowVoltageBypassed;
+extern bool highVoltageBypassed;
 #define DEF_OLED_INVERT false     // Орієнтація OLED за замовчуванням
 
 // Конфігурація модуля INA226 та датчиків
@@ -160,7 +165,7 @@ typedef struct progData {        // Структура робочих даних
   uint16_t nominalVoltage;       // Номінальна напруга компенсації (В*10, напр. 55 = 5.5В)
   uint16_t PulseBatteryVoltage;  // Напруга батареї під час імпульсу x10
   uint16_t PulseAmps;            // Орієнтовна сила струму під час імпульсу x10
-  uint16_t PulseShuntVoltage;
+  uint16_t PulseResistance;      // Опір зварювального контуру в мОм x10
   struct progFlags {             // Програмування логічних прапорів
     unsigned en_autoPulse : 1;   // Auto-pulse enable
     unsigned en_Sound : 1;       // Weld Sound enable
@@ -177,7 +182,7 @@ void stateMachine();
 
 void resetEEPROM(bool = false);
 void loadEEPROM();
-void updateEEPROM();
+void updateEEPROM(bool = false);
 
 void checkForLowVoltageEvent();
 void checkForSleepEvent();
@@ -197,7 +202,9 @@ void displayMenuType1(const __FlashStringHelper *, const __FlashStringHelper *,
 void displayMenuType2(const __FlashStringHelper *, const char *, const __FlashStringHelper *);
 void displayMainScreen();
 // void displayPulseData();  // Видалено — не реалізована
-void displayLowBattery();
+void displayInaError();
+void displayNoContactWarning();
+void displayNtcError();
 // void displayHighBattery();
 void displayHighTemperature();
 void displayHighVoltageWarning();
@@ -217,24 +224,6 @@ void handleSubMenu2(char *str);
 * Мовні рядки (дуже проста мовна реалізація - англійська за замовчуванням)                         *
 ***************************************************************************************************/
 
-// Скопіюйте мовні рядки з else у відповідний пункт, а потім змініть їх відповідно до вашої мови.
-// Визначте вашу мову у верхній частині цього заголовного файлу.
-// Важливо підтримувати правильне форматування рядків. Кожен рядок має вбудований коментар,
-// який визначає його формат.
-
-// Comment legend: field width          21 для дрібного шрифту, 10 для великого шрифту
-//                 justification        left, centre, right
-//                 padded               Пробіли з обох кінців для заповнення поля
-
-#ifdef _LANG_DE_
-
-#elif defined _LANG_FR_
-
-#elif defined _LANG_ES_
-
-#elif defined _LANG_IT_
-
-#else
 //                                           0123456789               // large font
 //                                           012345678901234567890    // small font
 
@@ -325,8 +314,6 @@ static const char LS_MSGHDR[] PROGMEM = "System Message";         // 21 char, le
 
 static const char LS_NOMVOLT[] PROGMEM = "  Vnom    ";              // 10 char, centre, padded
 static const char LS_NOMVOLTMENU[] PROGMEM = "Nominal Voltage";     // 21 char, left
-
-#endif
 
 #endif  // _SPOT_WELDER_PRO_H
 

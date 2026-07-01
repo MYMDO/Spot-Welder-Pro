@@ -1,18 +1,71 @@
 /***************************************************************************************************
 * Утиліта перетворення функцій                                                                     *
 ***************************************************************************************************/
+static void padRight(char *str, uint16_t val, uint8_t width) {
+  char temp[8];
+  itoa(val, temp, 10);
+  uint8_t len = strlen(temp);
+  uint8_t pad = (width > len) ? (width - len) : 0;
+  for (uint8_t i = 0; i < pad; i++) {
+    str[i] = ' ';
+  }
+  strcpy(str + pad, temp);
+}
+
+static void formatDoubleDec(char *str, uint16_t val) {
+  uint16_t intPart = val / 100;
+  uint16_t decPart = val % 100;
+  char temp[8];
+  itoa(intPart, temp, 10);
+  uint8_t len = strlen(temp);
+  uint8_t pad = (2 > len) ? (2 - len) : 0;
+  for (uint8_t i = 0; i < pad; i++) {
+    str[i] = ' ';
+  }
+  strcpy(str + pad, temp);
+  uint8_t dotPos = pad + len;
+  str[dotPos] = '.';
+  if (decPart < 10) {
+    str[dotPos + 1] = '0';
+    itoa(decPart, str + dotPos + 2, 10);
+  } else {
+    itoa(decPart, str + dotPos + 1, 10);
+  }
+}
+
+static void formatSingleDec(char *str, uint16_t val) {
+  uint16_t intPart = val / 10;
+  uint16_t decPart = val % 10;
+  itoa(intPart, str, 10);
+  uint8_t len = strlen(str);
+  str[len] = '.';
+  itoa(decPart, str + len + 1, 10);
+}
+
 char *valStr(char *str, uint16_t val, vf_Type fType) {
   switch (fType) {
-    case VF_BATTALM: sprintf_P(str, PSTR("%u.%u"), val / 10, val % 10); break;
-    case VF_TEMPALM: sprintf_P(str, PSTR("%4u"), val); break;
-    case VF_BATTV: sprintf_P(str, PSTR("%2u.%02u"), val / 100, val % 100); break;
-    case VF_BATTA: sprintf_P(str, PSTR("%5u"), val); break;
-    case VF_WELDCNT: sprintf_P(str, PSTR("%5u"), val); break;
-    case VF_TEMP: sprintf_P(str, PSTR("%5u"), val); break;
-    case VF_PLSDLY: sprintf_P(str, PSTR("%3u"), val); break;
-    case VF_SHTPLS: sprintf_P(str, PSTR("%3u"), val); break;
-    case VF_DELAY: sprintf_P(str, PSTR("%u.%u"), val / 10, val % 10); break;
-    default: str[0] = '\0'; break;
+    case VF_BATTALM:
+    case VF_DELAY:
+      formatSingleDec(str, val);
+      break;
+    case VF_BATTV:
+      formatDoubleDec(str, val);
+      break;
+    case VF_TEMPALM:
+      padRight(str, val, 4);
+      break;
+    case VF_BATTA:
+    case VF_WELDCNT:
+    case VF_TEMP:
+      padRight(str, val, 5);
+      break;
+    case VF_PLSDLY:
+    case VF_SHTPLS:
+      padRight(str, val, 3);
+      break;
+    default:
+      str[0] = '\0';
+      break;
   }
   return str;
 }
@@ -24,10 +77,10 @@ void resetEEPROM(bool full) {
   pData.autoPulseDelay = DEF_AUTO_PLSDELAY;
   pData.PulseBatteryVoltage = DEF_PULSE_VOLTAGE;
   pData.PulseAmps = DEF_PULSE_AMPS;
-  pData.PulseShuntVoltage = DEF_SHUNT_VOLTAGE;
+  pData.PulseResistance = 0;
   pData.batteryAlarm = DEF_BATT_ALARM / 100;
   pData.batteryhighAlarm = DEF_HIGH_BATT_ALARM / 100;
-  pData.nominalVoltage = 55;
+  pData.nominalVoltage = 85;
   pData.weldCount = full == EE_FULL_RESET ? 0 : pData.weldCount;
   pData.pulseTime = DEF_PULSE_TIME;
   pData.maxPulseTime = DEF_MAX_PULSE_TIME;
@@ -86,11 +139,11 @@ void loadEEPROM() {
   }
 }
 
-void updateEEPROM() {
+void updateEEPROM(bool force) {
   static unsigned long lastEEUpdatetime = 0;
   uint16_t storedChecksum;
 
-  if (millis() - lastEEUpdatetime > EEPROM_UPDATE_T) {
+  if (force || (millis() - lastEEUpdatetime > EEPROM_UPDATE_T)) {
     lastEEUpdatetime = millis();
 
     EEPROM.get(EEA_CHECKSUM, storedChecksum);
